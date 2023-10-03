@@ -6,12 +6,12 @@
 \begin{titlepage}
     \centering
     \vspace*{\fill}
-    \Huge \textbf{ }
+    \Huge \textbf{THESIS TITLE}
     \vspace{2cm} 
     
     \Large Lorenzo Ferrari
 
-    \vspace{2cm} 
+    \vspace{2cm} % Spazio aggiuntivo tra il nome e il nome dell'istituto
     
     \Large Università degli studi di Parma
     \par
@@ -23,44 +23,67 @@
 %indice
 \renewcommand{\contentsname}{Index}
 \tableofcontents
+    
+    
+    
+    %overview 
+    \chapter{overview}
+    introduction and some stuff
+    % Capitolo buffer overflow
+    \chapter{Buffer Overflow vulnerability}
+    \subsection{Historical background} %---------------------fix this text ------------------
+    Buffer overflow is a critical vulnerability that emerged around the 1970s and 1980s where it was 
+    realized through research which leads the attacker to uncontrolled access to critical points of memory.\newline
+    As the 1990s arrived the explosion of the Internet and its client-server infrastructure led large numbers of people to use buffer overflow.\newline
+    Furthermore, in this period the first books were published explaining how buffer overflow works.\newline
+    In the 2000s people wanted to defend themselves from these types of attacks and invented two types of mitigations:\newline
+    \begin{itemize}
+        \item[$\bullet$] ASLR (Address Space Layout Randomization)
+        \item[$\bullet$] stack canary 
+    \end{itemize}
+    We will explain this mitigation later.\newline
+    Between 2000s and 2010s even with the mitigations attackers managed to avoid them and still exploit buffer overflow vulnerability with technique called:\newline
+        \begin{itemize}
+        \item[$\bullet$] ROP (Return Oriented Programming)
+        \item[$\bullet$] RET2LIBC (Return to Libc)
+    \end{itemize}
+    Even though vulnerability was born so many years ago it still is one of the biggest an dangerous vulnerablity.
+    \clearpage
+    %-----------------fix until here--------------------
+    \section{How Buffer Overflow works}
+    spiegazione bof
+    \clearpage
+    \section{mitigations against Buffer Overflow}
+    mitigazioni buffer overflow
+    \clearpage
+    \section{Buffer Overflow attack and mitigations bypass}
+    to be continued
+    \clearpage
+    \section{explanation of a challange and exploit analyses}
+    to be continued
+    
+    
+    %capitolo heap overflow 
+    \chapter{Heap Overflow Vulnerability}
+    \section{How it works a Heap Overflow}
+    to be continued
 
+    \section{overview challenge and attack planning}
+    to be continued
+    \section{exploit analisys}
+    to be continued
 
-
-%overview 
-\chapter{overview}
-introduction and some stuff
-% Capitolo buffer overflow
-\chapter{Buffer Overflow vulnerability}
-\section{How it works a Buffer Overflow}
-to be continued
-\section{mitigations against Buffer Overflow}
-to be continued
-\section{overview challenge and attack planning}
-to be continued
-\section{exploit analisys}
-to be continued
-
-
-%capitolo heap overflow 
-\chapter{Heap Overflow Vulnerability}
-\section{How it works a Heap Overflow}
-to be continued
-\section{overview challenge and attack planning}
-to be continued
-\section{exploit analisys}
-to be continued
-
-%capitolo double free
-\chapter{Double Free Vulnerability}
-\section{How it works a Double Free}
-to be continued
-\section{overview challenge and attack planning}
-to be continued
-\section{exploit analisys}
-to be continued
-
-% capitolo conclusioni
-\chapter{Conclusion}
-to be continued
-
+    %capitolo double free
+    \chapter{Double Free Vulnerability}
+    \section{How it works a Double Free}
+    to be continued
+    \section{overview challenge and attack planning}
+    to be continued
+    \section{exploit analisys}
+    to be continued
+    
+    % capitolo conclusioni
+    \chapter{Conclusion}
+    to be continued
+    
 \end{document}
