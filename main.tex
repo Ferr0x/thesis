@@ -31,7 +31,7 @@
     introduction and some stuff
     % Capitolo buffer overflow
     \chapter{Buffer Overflow vulnerability}
-    \subsection{Historical background} %---------------------fix this text ------------------
+    \section{background} %---------------------fix this text ------------------
     Buffer overflow is a critical vulnerability that emerged around the 1970s and 1980s where it was 
     realized through research which leads the attacker to uncontrolled access to critical points of memory.\newline
     As the 1990s arrived the explosion of the Internet and its client-server infrastructure led large numbers of people to use buffer overflow.\newline
@@ -51,7 +51,18 @@
     \clearpage
     %-----------------fix until here--------------------
     \section{How Buffer Overflow works}
-    spiegazione bof
+    A buffer overflow occurs when the attacker can write more input than expected from the buffer, the overflow input exceeds in the memory in the location right after the buffer we are allocating, this could be very dangerous.
+    here's an example:
+    \begin{verbatim}
+    #include <iostream>
+    
+    int main() {
+        char my_input[30]; // buffer victim 
+        scanf("%50s",my_input); // wrong usage of scanf  
+        return 0;
+    }
+    \end{verbatim}
+    In this example we can see a bad usage of a scanf function, infact this program we have a char buffer with a size of 30 but the scanf function can read until 50 chars 
     \clearpage
     \section{mitigations against Buffer Overflow}
     mitigazioni buffer overflow
@@ -67,23 +78,26 @@
     \chapter{Heap Overflow Vulnerability}
     \section{How it works a Heap Overflow}
     to be continued
-
+    \clearpage
     \section{overview challenge and attack planning}
     to be continued
+    \clearpage
     \section{exploit analisys}
     to be continued
-
+    \clearpage
     %capitolo double free
     \chapter{Double Free Vulnerability}
     \section{How it works a Double Free}
-    to be continued
+    to be continued    
+    \clearpage
     \section{overview challenge and attack planning}
     to be continued
+    \clearpage
     \section{exploit analisys}
     to be continued
-    
+    \clearpage
     % capitolo conclusioni
     \chapter{Conclusion}
     to be continued
-    
+    \clearpage
 \end{document}
