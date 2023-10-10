@@ -1,4 +1,5 @@
 \documentclass{report}
+\usepackage{graphicx}
 
 \begin{document}
 
@@ -51,18 +52,46 @@
     \clearpage
     %-----------------fix until here--------------------
     \section{How Buffer Overflow works}
-    A buffer overflow occurs when the attacker can write more input than expected from the buffer, the overflow input exceeds in the memory in the location right after the buffer we are allocating, this could be very dangerous.
+    A buffer overflow occurs when the attacker can write more input than expected from the buffer, the overflow input exceeds in the memory in the location right after the buffer we are allocating, this could be very dangerous.\newline
     here's an example:
     \begin{verbatim}
     #include <iostream>
     
     int main() {
-        char my_input[30]; // buffer victim 
-        scanf("%50s",my_input); // wrong usage of scanf  
+    
+        char buff[30]; // buffer victim 
+        printf(" insert your name: ");
+        scanf("%50s",buffS); 
         return 0;
     }
     \end{verbatim}
-    In this example we can see a bad usage of a scanf function, infact this program we have a char buffer with a size of 30 but the scanf function can read until 50 chars 
+    In this example we can see a bad usage of a scanf function. In fact, this program has a char buffer with a size of 30, but the scanf function can read up to 50 chars.\newline 
+    What happens if we insert more input than expected for the buffer?\newline
+    State of the buffer before inserting input:
+       
+    \begin{figure}[h]
+    \centering
+
+    \includegraphics[width=13cm]{Organigrammi.png}
+    \caption{Empty stack}
+    \label{fig:example_empty_buffer}
+    \end{figure}
+       \clearpage
+    In the example, we can notice that we have our buffer instantiated.\newline
+    I wrote the question marks instead of 0x0000000000000000 because this memory at the beginning of the program is instantiated for the program we are executing, but this memory had previously been used in other contexts.\newline
+    Now we will try to insert the following paylaod:
+    \begin{verbatim}
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPPBBBBBBBBCCCCCCCC
+    \end{verbatim}
+    i used the "A" to fill the buffer "P" for the remaining buffer before RBP, "B" for overwriting the saved base pointer,
+    C for overwriting the return address.
+    this will cause a buffer overflow because when we get to the assembly instruction leave and ret it will not find the instruction 0x4343434343434343 and the program will receive a segmentation fault.
+    \begin{figure}
+        \centering
+        \includegraphics[width=1.3\linewidth]{example1.png}
+        \caption{buffer overflow triggered}
+        \label{fig:enter-label}
+    \end{figure}
     \clearpage
     \section{mitigations against Buffer Overflow}
     mitigazioni buffer overflow
