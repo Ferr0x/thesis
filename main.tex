@@ -71,7 +71,6 @@
        
     \begin{figure}[h]
     \centering
-
     \includegraphics[width=13cm]{Organigrammi.png}
     \caption{Empty stack}
     \label{fig:example_empty_buffer}
@@ -102,7 +101,6 @@
         \label{fig:enter-label}
     \end{figure}
     \clearpage
-    
     \chapter{Mitigations against Buffer Overflow}
     \section{Stack Canary}
     The stack canary is a protection that was invented in the 90s to prevent a buffer overflow from occurring.
@@ -112,7 +110,6 @@
     \begin{verbatim}
     *** stack smashing detected ***: terminated
     \end{verbatim}
-    
     Compilers like gcc by default compile with stack canary, by analyzing the decompiled file the compiler will insert the following lines of code to insert the stack canary.\newline
     \begin{verbatim}
     if (local_10 != *(long *)(in_FS_OFFSET + 0x28)) {
@@ -124,20 +121,32 @@
     The name derives from a small historical note. In fact, the name "stack canary" was inspired by the technique used in coal mines.\newline
     To avoid entering an area of the mine with high levels of toxic gases, they would let a canary fly ahead. If the canary died, passage was prohibited; otherwise, they could pass.
     \clearpage
-        
     Following is the photo of the stack extracted from GDB. As we can see, I inserted two commands:
     \begin{itemize}
-      \item \hspace{1em} canary: This shows the possible canaries of this code.
-      \item \hspace{1em} stack 20: This shows 20 stack instances.
+      \item \hspace{1em} canary: This command shows the possible canaries of this code.
+      \item \hspace{1em} stack 20: This command shows 20 stack instances.
     \end{itemize}
     As we can see, at address 0x7fffffffdf68, we have the value 0xe1509a30995e5f00, which is our stack canary.
     \begin{figure}
         \includegraphics[width=1.3\linewidth]{photo_of_the_stack_with_canary.png}
-        \caption{stack canary on gdb}
-        \label{fig: }
+        \caption{ stack canary on gdb }
+        \label{fig:}
     \end{figure}
-    \newpage
-
+    \clearpage
+    \section{ASLR}
+    ASLR stands for Address Space Layout Randomization and is a technique they invented to protect operating systems from memory attacks.\newline
+    In fact ASLR has the task of randomizing sections of memory such as heap stacks and shared libraries every time a program or operating system is launched.\newline
+    ASLR with the stack canary seen previously and PIE that we will see later are mitigations mainly developed to avoid buffer overflow, in fact ASLR for example avoids us from jumping into memory locations that would be in fixed positions if it were not for this mitigation, and it avoids many attacks.\newline
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=1\linewidth]{ASLR_stack_image.png}
+        \caption{memory with aslr }
+        \label{fig:enter-label}
+    \end{figure}
+    \clearpage
+    \section{PIE}
+    tbc
+    \clearpage
     \section{Buffer Overflow attack and mitigations bypass}
     to be continued
     \clearpage
