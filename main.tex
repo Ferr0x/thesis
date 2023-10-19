@@ -1,5 +1,7 @@
 \documentclass{report}
 \usepackage{graphicx}
+\usepackage{hyperref}
+
 
 \begin{document}
 
@@ -89,7 +91,7 @@
         \centering
         \includegraphics[width=0.9\linewidth]{example1.png}
         \caption{buffer overflow triggered}
-        \label{fig:enter-label}
+        \label{fig:empty stack}
     \end{figure}
     \newpage
     
@@ -98,7 +100,7 @@
         \centering
         \includegraphics[width=1\linewidth]{stack_after_overflow.png}
         \caption{Stack after the overflow}
-        \label{fig:enter-label}
+        \label{fig:stack w overflow}
     \end{figure}
     \clearpage
     \chapter{Mitigations against Buffer Overflow}
@@ -130,7 +132,7 @@
     \begin{figure}
         \includegraphics[width=1.3\linewidth]{photo_of_the_stack_with_canary.png}
         \caption{ stack canary on gdb }
-        \label{fig:}
+        \label{fig:  photo stack canary}
     \end{figure}
     \clearpage
     \section{ASLR}
@@ -145,7 +147,22 @@
     \end{figure}
     \clearpage
     \section{PIE}
-    tbc
+    PIE stands for Position Independent Executable and is very similar to ASLR, in fact it follows the same concept as ASLR but with the binary assembly memory region.\newline
+    As can be interpreted from the name Position Independent gives the possibility for a binary to be loaded and executed in memory at arbitrary addresses, this means that the program data instead of referring to addresses in fixed memory are referenced through the use of an offset random to the current position where it is loaded plus the offset.\newline
+        \begin{tabular}{|c|c|c|c|}
+      \hline
+      ASLR  & PIE & Binary Address & Libc Address \\
+      \hline
+      disable & disable  & 0x400000 & 0x7ffff7d86000 \\
+      disable & disable  & 0x400000 & 0x7ffff7d86000\\
+      disable & activated   & 0×555555554000 & 0x7ffff7d86000 \\
+      disable & activated   & 0×555555554000 & 0x7ffff7d86000 \\
+      activated  & disable  &  0x400000 & 0x7fe7833eb000 \\
+      activated  & disable  &  0x400000& 0x7f1a44191000 \\
+      activated  & activated   & 0×555555554000 & 0x7f29d6ebd000 \\
+      activated  & activated   & 0×555555554000 & 0x7f7d008a0000 \\
+      \hline
+    \end{tabular}
     \clearpage
     \section{Buffer Overflow attack and mitigations bypass}
     to be continued
@@ -179,5 +196,7 @@
     % capitolo conclusioni
     \chapter{Conclusion}
     to be continued
+    \section{online references}
+    \href{https://it.wikipedia.org/wiki/Home_page}{.....}
     \clearpage
 \end{document}
