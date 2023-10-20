@@ -121,7 +121,8 @@
     \end{verbatim}
     
     The name derives from a small historical note. In fact, the name "stack canary" was inspired by the technique used in coal mines.\newline
-    To avoid entering an area of the mine with high levels of toxic gases, they would let a canary fly ahead. If the canary died, passage was prohibited; otherwise, they could pass.
+    To avoid entering an area of the mine with high levels of toxic gases, they would let a canary fly ahead.\newline
+    If the canary died, passage was prohibited; otherwise, they could pass.
     \clearpage
     Following is the photo of the stack extracted from GDB. As we can see, I inserted two commands:
     \begin{itemize}
@@ -139,6 +140,14 @@
     ASLR stands for Address Space Layout Randomization and is a technique they invented to protect operating systems from memory attacks.\newline
     In fact ASLR has the task of randomizing sections of memory such as heap stacks and shared libraries every time a program or operating system is launched.\newline
     ASLR with the stack canary seen previously and PIE that we will see later are mitigations mainly developed to avoid buffer overflow, in fact ASLR for example avoids us from jumping into memory locations that would be in fixed positions if it were not for this mitigation, and it avoids many attacks.\newline
+    ASLR can randomize memory segments between a range of   \begin{verbatim} 2^8(256) to  2^16(65536)    \end{verbatim}
+    on the linux kernel we can check the level of randomization with the following command:
+    \begin{verbatim}
+    cat /proc/sys/kernel/randomize_va_space
+    2
+    \end{verbatim}
+    the result of the command is 2 this indicate that we have maximum number of randomization in my personal linux kernel.\newline
+    Follows a photo that explain how aslr works.
     \begin{figure}[h]
         \centering
         \includegraphics[width=1\linewidth]{ASLR_stack_image.png}
