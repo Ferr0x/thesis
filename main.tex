@@ -103,8 +103,8 @@
         \label{fig:stack w overflow}
     \end{figure}
     \clearpage
-    \chapter{Mitigations against Buffer Overflow}
-    \section{Stack Canary}
+    \section{Mitigations against Buffer Overflow}
+    \subsection{Stack Canary}
     The stack canary is a protection that was invented in the 90s to prevent a buffer overflow from occurring.
     It consists of generating a protection value, generated at run time and therefore different for each time a program is executed, but remains for the entire execution of the program.
     The stack canary is placed before important metadata such as the saved base pointer and return address.
@@ -136,11 +136,14 @@
         \label{fig:  photo stack canary}
     \end{figure}
     \clearpage
-    \section{ASLR}
+    \subsection{ASLR}
     ASLR stands for Address Space Layout Randomization and is a technique they invented to protect operating systems from memory attacks.\newline
     In fact ASLR has the task of randomizing sections of memory such as heap stacks and shared libraries every time a program or operating system is launched.\newline
     ASLR with the stack canary seen previously and PIE that we will see later are mitigations mainly developed to avoid buffer overflow, in fact ASLR for example avoids us from jumping into memory locations that would be in fixed positions if it were not for this mitigation, and it avoids many attacks.\newline
-    ASLR can randomize memory segments between a range of   \begin{verbatim} 2^8(256) to  2^16(65536)    \end{verbatim}
+    ASLR can randomize memory segments between a range of:
+    \begin{verbatim} 
+    2^8(256) to  2^16(65536)
+    \end{verbatim}
     on the linux kernel we can check the level of randomization with the following command:
     \begin{verbatim}
     cat /proc/sys/kernel/randomize_va_space
@@ -150,36 +153,66 @@
     Follows a photo that explain how aslr works.
     \begin{figure}[h]
         \centering
-        \includegraphics[width=1\linewidth]{ASLR_stack_image.png}
-        \caption{memory with aslr }
-        \label{fig:enter-label}
+        \includegraphics[width=0.8\linewidth]{aslr_explanation.png}
+        \caption{ASLR}
+        \label{fig:aslr }
     \end{figure}
     \clearpage
-    \section{PIE}
+    \subsection{PIE}
     PIE stands for Position Independent Executable and is very similar to ASLR, in fact it follows the same concept as ASLR but with the binary assembly memory region.\newline
-    As can be interpreted from the name Position Independent gives the possibility for a binary to be loaded and executed in memory at arbitrary addresses, this means that the program data instead of referring to addresses in fixed memory are referenced through the use of an offset random to the current position where it is loaded plus the offset.\newline
-        \begin{tabular}{|c|c|c|c|}
-      \hline
-      ASLR  & PIE & Binary Address & Libc Address \\
-      \hline
-      disable & disable  & 0x400000 & 0x7ffff7d86000 \\
-      disable & disable  & 0x400000 & 0x7ffff7d86000\\
-      disable & activated   & 0×555555554000 & 0x7ffff7d86000 \\
-      disable & activated   & 0×555555554000 & 0x7ffff7d86000 \\
-      activated  & disable  &  0x400000 & 0x7fe7833eb000 \\
-      activated  & disable  &  0x400000& 0x7f1a44191000 \\
-      activated  & activated   & 0×555555554000 & 0x7f29d6ebd000 \\
-      activated  & activated   & 0×555555554000 & 0x7f7d008a0000 \\
-      \hline
-    \end{tabular}
-    \clearpage
-    \section{Buffer Overflow attack and mitigations bypass}
-    to be continued
-    \clearpage
-    \section{explanation of a challange and exploit analyses}
-    to be continued
+    As can be interpreted from the name Position Independent gives the possibility for a binary to be loaded and executed in memory at arbitrary addresses, this means that the program data instead of referring to addresses in fixed memory are referenced through the use of an offset random to the current position where it is loaded plus the offset.
     
+    \begin{table}[h] % Utilizzo [b] per posizionare la tabella in fondo alla pagina
+      \centering
+      \begin{tabular}{|c|c|c|c|}
+        \hline
+        ASLR  & PIE & Binary Address & Libc Address \\
+        \hline
+        disable & disable  & 0x400000 & 0x7ffff7d86000 \\
+        disable & disable  & 0x400000 & 0x7ffff7d86000\\
+        disable & activated   & 0×555555554000 & 0x7ffff7d86000 \\
+        disable & activated   & 0×555555554000 & 0x7ffff7d86000 \\
+        activated  & disable  &  0x400000 & 0x7fe7833eb000 \\
+        activated  & disable  &  0x400000& 0x7f1a44191000 \\
+        activated  & activated   & 0×555555554000 & 0x7f29d6ebd000 \\
+        activated  & activated   & 0×555555554000 & 0x7f7d008a0000 \\
+        \hline
+      \end{tabular}
+    \end{table}
+    \clearpage
+    \section{How to bypass the mitigation}
+    ha senso fare questa slide ?
+    \clearpage
+    \section{How to exploit a buffer overflow and demonstration of a challenge}
+    In this chapter I will explain the techniques used to exploit a buffer overflow and demonstrate how the techniques work with an example of an exploit.\newline
+    As a demonstration I used a challenge proposed as training in preparation for the national competition.\newline
+    I found and decided to present the following challenge because it includes the bypass of all mitigations and an exploitation technique that is still very effective.\newline
+        The challenge is called terminator and two files are attached:
+
+    \begin{itemize}
+        \item[$\bullet$] file terminator ELF  
+        \item[$\bullet$] libc with which they compiled that binary
+    \end{itemize}
+    \clearpage
     
+    \subsection{Plan and organization of steps to carry out a challenge}
+    When it comes to finding bugs in real-world applications or solving cybersecurity challenges, I like to divide the work into four main points: \newline
+    \begin{itemize}
+        \item[Step 1:] understand the environment
+        \item[Step 2:] reverse engineering 
+        \item[Step 3:] understand which mitigations are active and think about how to bypass them
+        \item[Step 4:] write the exploit and test it
+    \end{itemize}
+
+    \subsection{Understand the envirnoment}
+    launching the command "file terminator"  we have the first information such as:\newline
+    \begin{itemize}
+        \item[$\bullet$] terminator is obviously a 64 bit x86-64 elf file.
+        \item[$\bullet$] the binary is not stripped, this is positive because it implies that we will have debug symbols and in the reverse engineering phase it helps us a lot .
+    \end{itemize}
+    \subsection{Reverse Engineering}
+    this is one of the most important and complicated phases, in fact from a binary file using tools such as IDA or Ghidra which interpret binary files and decompile them to make this phase easier.\newline
+    Certainly, even with very powerful tools like these, the decompiled code will never be as clean as the original code. in fact this phase involves an interpretation of the code through the decompiled code and the assembly that is shown. 
     %capitolo heap overflow 
     \chapter{Heap Overflow Vulnerability}
     \section{How it works a Heap Overflow}
