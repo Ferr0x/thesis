@@ -35,6 +35,7 @@
     % Capitolo buffer overflow
     \chapter{Buffer Overflow vulnerability}
     \section{background} %---------------------fix this text ------------------
+    
     Buffer overflow is a critical vulnerability that emerged around the 1970s and 1980s where it was 
     realized through research which leads the attacker to uncontrolled access to critical points of memory.\newline
     As the 1990s arrived the explosion of the Internet and its client-server infrastructure led large numbers of people to use buffer overflow.\newline
@@ -234,8 +235,31 @@
     \clearpage
         From this code we can interpret two critical bugs and one mitigation.\newline
     Initially a char buffer of size fifty six is instantiated, some prints are made and then we encounter the first bug.\newline
-    the read function, as we can read from the manual, reads the number of bytes indicated within the function, in this specific case fifty six and does not add the null byte by default, in fact the programmer added it manually in the position that reflects the bytes read , however causing an off by one because it will put the null byte in the next byte at the end of the buffer, overwriting the first least significant byte of the next address.
+    The read function, as we can read from the manual, reads the number of bytes indicated within the function, in this specific case fifty six and does not add the null byte by default, in fact the programmer added it manually in the position that reflects the bytes read , however causing an off by one because it will put the null byte in the next byte at the end of the buffer, overwriting the first least significant byte of the next address.\newline
+    vulnerable code:\newline
+    \begin{verbatim} 
+        char buffer [56];
+        size = read(0,buffer,56);  
+        buffer[(int)size] = '\n';
+    \end{verbatim}
+    The second critical bug is a buffer overflow where the provenance is requested, in fact it uses the same name buffer to save the provenance.
+    Since the buffer is fifty-six characters long and the read has the number of bytes it will read set to seventy-two characters, this undoubtedly causes a buffer overflow of as many as fourteen characters.
+    vulnerable code:\newline
+    \begin{verbatim} 
+    char buffer [56];
+    read(0,buffer,72);
+    \end{verbatim}
+    Finally, from this function we can understand something that we would have analyzed later but realizing it previously already makes us aware of a potential problem.\newline
+    In fact, from the decompiled code we find the code used by the compiler to insert the canary stack, which will prevent us from doing buffer overflows without first leaking the canary stack.\newline
+    vulnerable code:
+    \begin{verbatim} 
+    if (local_10 != *(long *)(in_FS_OFFSET + 0x28)) {
+                        /* WARNING: Subroutine does not return */
+        __stack_chk_fail();
+    }
+    \end{verbatim}
     
+        
     %capitolo heap overflow 
     \chapter{Heap Overflow Vulnerability}
     \section{How it works a Heap Overflow}
