@@ -33,9 +33,21 @@
     \chapter{overview}
     introduction and some stuff
     % Capitolo buffer overflow
+    \section{Tooling}
+    In this thesis i will use many tools such as: 
+       \begin{itemize}
+        \item[$\bullet$] pwndbg : pwndbg is a GDB plugin that makes debugging with GDB with a focus on features needed by low-level software developers, hardware hackers, reverse engineers, and developer exploitation.
+        \item[$\bullet$]pwntools: pwntools: pwntools is a very powerful Python library created to make difficult things easy in exploit development.\newline
+        Such as receiving program output contents, sending user input, sending bytes instead of letters, and much more.\newline
+        \item[$\bullet$] ghidra or ida free: 
+        ghidra is a free tool developed by the NSA used to decompile binary files.
+        ida free is the free version of ida pro and is a cloud base decompiler, the free version works only for some architecture such as x8664.\newline
+        both tools are used in the reverse engineering part.\newline
+
+    \end{itemize}
+    
     \chapter{Buffer Overflow vulnerability}
     \section{background} %---------------------fix this text ------------------
-    
     Buffer overflow is a critical vulnerability that emerged around the 1970s and 1980s where it was 
     realized through research which leads the attacker to uncontrolled access to critical points of memory.\newline
     As the 1990s arrived the explosion of the Internet and its client-server infrastructure led large numbers of people to use buffer overflow.\newline
