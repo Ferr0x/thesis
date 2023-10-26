@@ -211,10 +211,10 @@
     \subsection{Plan and organization of steps to carry out a challenge}
     When it comes to finding bugs in real-world applications or solving cybersecurity challenges, I like to divide the work into four main points: \newline
     \begin{itemize}
-        \item[Step 1:] understand the environment
-        \item[Step 2:] reverse engineering 
-        \item[Step 3:] understand which mitigations are active and think about how to bypass them
-        \item[Step 4:] write the exploit and test it
+        \item[Step 1:] understand the environment.
+        \item[Step 2:] reverse engineering.
+        \item[Step 3:] understand which mitigations are.
+        \item[Step 4:] write the exploit and test it.
     \end{itemize}
 
     \subsection{Understand the envirnoment}
@@ -271,7 +271,22 @@
     }
     \end{verbatim}
     
-        
+    \clearpage
+    \subsection{Understand which mitigations are active}
+To understand the mitigations the pwntools library help us, in fact there is a feature that allows us to check the mitigations only with the following command:
+    \begin{verbatim}
+        checksec terminator                                     
+[*] '/home/ferro/Downloads/terminator'
+    Arch:     amd64-64-little
+    RELRO:    Full RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      No PIE (0x400000)
+    \end{verbatim}
+    And the checksec command shows that we have a amd64-64-little that stand for x86-64 infrastructure, we have also Full RELRO that means we cant overwrite any plt and got section infact that memory is mapped as read only section, is not important for this specific exploit but in other exploitation techniques can be a big obstacle to bypass.\newline
+    Than we have stack canary, we have already saw the canary code in the reverse engineering step, that confirm the presence of the canary, this will make our life difficult in the exploitation part.\newline
+    Furthermore we have NX enabled so we cant execute shellcode directly in the stack.\newline
+    And finally a good news we haven't PIE so the program data wont be randomize.\newline
     %capitolo heap overflow 
     \chapter{Heap Overflow Vulnerability}
     \section{How it works a Heap Overflow}
