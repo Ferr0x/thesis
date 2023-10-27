@@ -36,14 +36,13 @@
     \section{Tooling}
     In this thesis i will use many tools such as: 
        \begin{itemize}
-        \item[$\bullet$] pwndbg : pwndbg is a GDB plugin that makes debugging with GDB with a focus on features needed by low-level software developers, hardware hackers, reverse engineers, and developer exploitation.
-        \item[$\bullet$]pwntools: pwntools: pwntools is a very powerful Python library created to make difficult things easy in exploit development.\newline
+        \item[$\bullet$] pwndbg : pwndbg is a GDB plugin that makes debugging with GDB with a focus on features needed by low-level software developers, hardware hackers, reverse engineers, and developer exploitation.\newline
+        \item[$\bullet$]pwntools: is a very powerful Python library created to make difficult things easy in exploit development.\newline
         Such as receiving program output contents, sending user input, sending bytes instead of letters, and much more.\newline
         \item[$\bullet$] ghidra or ida free: 
         ghidra is a free tool developed by the NSA used to decompile binary files.
         ida free is the free version of ida pro and is a cloud base decompiler, the free version works only for some architecture such as x8664.\newline
         both tools are used in the reverse engineering part.\newline
-
     \end{itemize}
     
     \chapter{Buffer Overflow vulnerability}
@@ -82,8 +81,7 @@
     \end{verbatim}
     In this example we can see a bad usage of a scanf function. In fact, this program has a char buffer with a size of 30, but the scanf function can read up to 50 chars.\newline 
     What happens if we insert more input than expected for the buffer?\newline
-    State of the buffer before inserting input:
-       
+    State of the buffer before inserting input:\newline
     \begin{figure}[h]
     \centering
     \includegraphics[width=13cm]{Organigrammi.png}
@@ -193,9 +191,7 @@
       \end{tabular}
     \end{table}
     \clearpage
-    \section{How to bypass the mitigation}
-    ha senso fare questa slide ?
-    \clearpage
+
     \section{How to exploit a buffer overflow and demonstration of a challenge}
     In this chapter I will explain the techniques used to exploit a buffer overflow and demonstrate how the techniques work with an example of an exploit.\newline
     As a demonstration I used a challenge proposed as training in preparation for the national competition.\newline
@@ -287,6 +283,46 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     Than we have stack canary, we have already saw the canary code in the reverse engineering step, that confirm the presence of the canary, this will make our life difficult in the exploitation part.\newline
     Furthermore we have NX enabled so we cant execute shellcode directly in the stack.\newline
     And finally a good news we haven't PIE so the program data wont be randomize.\newline
+    \subsection{Write the exploit and test it}
+    The first step I did in the exploit is find the stack canary and save the base pointer because would be very useful later.
+    The first overflow is perfect for our work, in fact if we look in the decompiled code we can see how the name input produces a bug, an off by one and allows us to overwrite the first byte of the canary stack, a feature of the canary stack is that the first three nibbles and therefore the first and a half bytes are always zero.\newline
+    In fact the printf always prints up to the string terminator or null byte, this is the reason why the stack canary being after the name buffer will not be printed because the first byte is always a null byte.\newline
+    But what happens if we overwrite the first byte of the canary with off by one?  
+    \newpage
+    exploit code to leak the canary:
+    \begin{verbatim} 
+    io.sendafter(b">", b"A"*56) # sending after char ">" 56*A 
+    io.recvuntil(b'Hello '+ b'A'*56) #recive the output until HelloAAAA....A
+    canary=io.recv(8) # save the canary  
+    svb=io.recvuntil(b'Nice' , drop=True) 
+    canary=b"\x00"+canary[1:8] # fixing the byte we overwrite to leak the canary
+    real_canary=u64(canary[0:8]) #conver the canary to unsigned 64 bit 
+    real_svb=u64(svb.ljust(8,b'\x00')) #convert the save base poiter to unsigned 64 bit
+    log.info(f"leaked canary: {hex(real_canary)}") #stampo il canary
+    log.info(f"leaked save base pointer: {hex(real_svb)}") #stampo il svp
+    \end{verbatim}
+    sendafter recvuntil are all pwntools functions that allow in the case of sendafter to send input bytes (in this case fifty-six A),
+    recvuntil instead allows you to receive the program output.\newline
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=1.3\linewidth]{leaked_canary_terminator.png}
+        \caption{Enter Caption}
+        \label{fig:leaked the canary in this function}
+    \end{figure}
+    
+    As we can deduce from the image in the left shell after our A the stack canary and the save base pointer are printed, and you can see that the off by one was successful in fact the last byte of the canary instead of being \textbackslash x00 is \textbackslash x0a indicating \textbackslash n. \newline
+    \clearpage
+    Following is an image that explains the state of the stack after the off by one.\newline
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=1\linewidth]{draw_terminator_stack_canaryleak.png}
+        \caption{stack status after off by one}
+        \label{fig:stack terminator}
+    \end{figure}
+    
+    As you can see the initial canary address 0x52eb83d416216c000
+    was overwritten in the last byte and became 0x52eb83d416216c0a.
+    The printf not encountering null bytes either in the contents of the stack canary or in the contents of the save base pointer will print both
     %capitolo heap overflow 
     \chapter{Heap Overflow Vulnerability}
     \section{How it works a Heap Overflow}
