@@ -284,6 +284,7 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     Furthermore we have NX enabled so we cant execute shellcode directly in the stack.\newline
     And finally a good news we haven't PIE so the program data wont be randomize.\newline
     \subsection{Write the exploit and test it}
+    \subsubsection{Leak canary and Base Pointer}
     The first step I did in the exploit is find the stack canary and save the base pointer because would be very useful later.
     The first overflow is perfect for our work, in fact if we look in the decompiled code we can see how the name input produces a bug, an off by one and allows us to overwrite the first byte of the canary stack, a feature of the canary stack is that the first three nibbles and therefore the first and a half bytes are always zero.\newline
     In fact the printf always prints up to the string terminator or null byte, this is the reason why the stack canary being after the name buffer will not be printed because the first byte is always a null byte.\newline
@@ -319,10 +320,68 @@ To understand the mitigations the pwntools library help us, in fact there is a f
         \caption{stack status after off by one}
         \label{fig:stack terminator}
     \end{figure}
-    
     As you can see the initial canary address 0x52eb83d416216c000
     was overwritten in the last byte and became 0x52eb83d416216c0a.
-    The printf not encountering null bytes either in the contents of the stack canary or in the contents of the save base pointer will print both
+    The printf not encountering null bytes either in the contents of the stack canary or in the contents of the save base pointer will print both.\newline
+    \subsubsection{Stack Pivoting and ASLR bypass}
+    Now that we have the stack canary and the base pointer leak, we can move on to the part of the exploit that allows us to execute commands remotely.\newline
+    Having NX as a mitigation we cannot write and execute shellcode on the stack so we will write a ROP chain.
+    A ROP chain consists of searching inside our binary for assembly instructions which, when chained together, allow us to make syscalls that interest us.\newline
+    \clearpage
+    We have a tool that helps us search for gadgets called ropper.\newline
+    \begin{verbatim}
+    shell command used to find gadgets.
+    ~/home/ferro/Downloads/terminator ropper --file=terminator
+    \end{verbatim}
+    This command will give us more than a hundred instructions as output, following is a photo of the section of the most interesting ones.\newline
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=1.2\linewidth]{rop_gadget.png}
+        \caption{ropper result}
+        \label{fig:ropper}
+    \end{figure}
+    
+    At this point we can actually try to pop a shell with a rop chain and do remote command execution, but we would encounter two main problems.\newline
+    \begin{itemize}
+        \item[Problem 1:] We don't have enough space after the overflow to perform a rop chain.
+        \item[Problem 2:] We don't have the base of the libc to bypass aslr.
+    \end{itemize}
+    So there are two solution: \newline
+    \begin{itemize}
+        \item[Solution 1:] Perform a stack pivoting attack.
+        \item[Solution 2:] Leak  the libc address.
+    \end{itemize}
+    \clearpage
+    \paragraph{Stack Pivoting}
+
+    When we don't have enough space for the rop chain we can perform an attack called stack pivoting, it consist in manipulating the stack to enlarge the stack that we have available. \newline
+    Basically we fake the rsp register to  enlarge the stack, there are many ways to perform a stack pivoting, we will find out my version later.\newline
+    \paragraph{Leak the Libc base}
+    To leak the base address of libc we will perform a puts of an got fuction address and after the leak, we will calculate the base of the libc doing :\newline
+    \begin{verbatim}
+        base Libc = address function with ASLR - fuction address with out ASLR  
+    \end{verbatim}
+    Follow the exploit code.\newline.
+    \begin{verbatim}
+                
+        pop_rdi=0x4012fb
+        system=0x52290  
+        puts1=0x84420      
+        payload2=flat(
+    
+             p64(pop_rdi),#address of pop rdi
+             p64(exe.got.puts),#address of got puts fucnion
+             p64(exe.sym.puts),#address that will actualy print the got puts addres
+             p64(0x00401292), #ret 
+             p64(exe.sym.main),#calling main again
+             b'A'*16,#fill the remaining space of the buffer
+             p64(real_canary), #send the canary to bypass the canary mitigation
+             p64(target_bp), #send the target base pointe    
+        )
+        io.sendafter(b">", payload2)
+        
+    \end{verbatim}
+    \clearpage
     %capitolo heap overflow 
     \chapter{Heap Overflow Vulnerability}
     \section{How it works a Heap Overflow}
