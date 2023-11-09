@@ -388,10 +388,23 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     %capitolo heap overflow 
     \chapter{Heap Overflow Vulnerability}
     \section{Malloc internal}
-    The next bug that I will show, as can be understood from the name, concerns another section of memory such as the heap which functions differently than the stack.\newline
+    The next bug that I will show, as can be understood from the name, concerns another section of memory such as the heap that works differently than the stack.\newline
     The heap known as Dynamic memory is a memory that is used for dynamic allocation, this is useful because you don't need to care about the size and the life time of the object. \newline
     Furthermore the heap in languages as C is manipulated from the user through functions as malloc() calloc() that permit you to create heap memory section usually called chunk, and free() to free your memory.\newline
-     
+     \begin{verbatim}
+         void *a = malloc(8);
+     \end{verbatim}
+     immagine to have this line of code, what is happening in the heap memory?\newline
+     FOTO HEAP\newline
+    The heap will create this chunk where the first quad-word is 0x20 that represent the size of the chunk, 0x20 is the minimum size for a chunk, and the pointer to the chunk will be the next quad word "0x602010".\newline
+    So we can deduce that the heap saves data such as the size inline directly on the heap, like the stack does for base pointers, etc.\newline
+    The last nibble of the size field is 0x1, is used to represent flags, in this case the least significant bit is set indicating prev\_insue.\newline
+    The prev\_inuse flags indicate, if the previous contiguous chunk is used will be set to 1 otherwise 0. \newline
+    Last thing i want to talk about malloc internal is the top chunk.\newline
+    Malloc treats that as yet unused heap memory as a single large chunk called top chunk.\newline
+    In Fact every time we request memory from a malloc or calloc function we are stealing a part of the top chunk.\newline
+    The value indicated in gdb previously is the remaining space of the heap memory.\newline
+    In many glibc version the top chunk value hasn't any type of integrity check, this will be the point of the heap overflow.\newline
     \section{How it works a Heap Overflow}
     \clearpage
     \section{overview challenge and attack planning}
