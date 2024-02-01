@@ -107,7 +107,7 @@
     \newpage
     
     This is how looks the stack after sending this payload:
-    \begin{figure}
+    \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{stack_after_overflow.png}
         \caption{Stack after the overflow}
@@ -482,6 +482,23 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     At this point the program will not crash because at the time I am writing this thesis no type of integrity check on the size of the top chunk has been implemented, this allows us to create arbitrary write.
     \paragraph{Craft arbitrary write}
     
+    Basically in the world of exploitation we always try to have arbitrary writes and arbitrary reads.\newline
+    Arbitrary read permit us to read addresses that allow us to bypass mitigations such as aslr, canary. \newline
+    Arbitrary writes to overwrite addresses that lead us to have remote command execution.
+    In the case of the example shown above we have no print source so crafting an arbitrary read is impossible but in larger and more complicated systems they can be found. \newline
+    But we have an arbitrary writing source, in fact we can overwrite the size of the top chunk making it giant until we reach the entry we want to overwrite
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.7\linewidth]{heap_arb_write.jpg}
+        \caption{Enter Caption}
+        \label{fig:enter-label}
+    \end{figure}
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=1\linewidth]{heap_after_arb_write.jpg}
+        \caption{Enter Caption}
+        \label{fig:enter-label}
+    \end{figure}
 
     \clearpage
     \section{overview challenge and attack planning}
@@ -505,6 +522,7 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     \chapter{Conclusion}
     to be continued
     \section{online references}
-    \href{https://it.wikipedia.org/wiki/Home_page}{.....}
+    \href{https://it.wikipedia.org/wiki/Home_page}{wikipedia}
+    
     \clearpage
 \end{document}
