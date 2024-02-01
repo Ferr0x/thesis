@@ -387,6 +387,19 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     \clearpage
     %capitolo heap overflow 
     \chapter{Heap Overflow Vulnerability}
+    \section{Background}
+        This attack was first documented in 2005 in a paper called malloc maleficarum, where 5 techniques that are still usable today called: 
+       \begin{itemize}
+        \item[$\bullet$] house of force
+        \item[$\bullet$] house of spirit
+        \item[$\bullet$] house of prime  
+        \item[$\bullet$] house of lore 
+        \item[$\bullet$] house of mind
+    \end{itemize}
+
+    have been explained, in this chapter we will talk about the most famous, house of force which includes a bug called heap overflow.
+    \clearpage
+    
     \section{Malloc internal}
     The next bug that I will show, as can be understood from the name, concerns another section of memory such as the heap that works differently than the stack.\newline
     The heap known as Dynamic memory is a memory that is used for dynamic allocation, this is useful because you don't need to care about the size and the life time of the object. \newline
@@ -394,9 +407,17 @@ To understand the mitigations the pwntools library help us, in fact there is a f
      \begin{verbatim}
          void *a = malloc(8);
      \end{verbatim}
-     immagine to have this line of code, what is happening in the heap memory?\newline
-     FOTO HEAP\newline
-    The heap will create this chunk where the first quad-word is 0x20 that represent the size of the chunk, 0x20 is the minimum size for a chunk, and the pointer to the chunk will be the next quad word "0x602010".\newline
+
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=1.2\linewidth]{image.png}
+        \caption{chunk in gdb}
+        \label{fig:enter-label}
+    \end{figure}
+    
+    Immagine to have this line of code, what is happening in the heap memory?\newline
+    The heap will create this chunk where the first quad-word is 0x20 that represent the size of the chunk, 0x20 is the minimum size for a chunk, and the pointer to the chunk will be the next quad word "0x4ce770".\newline
+
     So we can deduce that the heap saves data such as the size inline directly on the heap, like the stack does for base pointers, etc.\newline
     The last nibble of the size field is 0x1, is used to represent flags, in this case the least significant bit is set indicating prev\_insue.\newline
     The prev\_inuse flags indicate, if the previous contiguous chunk is used will be set to 1 otherwise 0. \newline
@@ -405,7 +426,63 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     In Fact every time we request memory from a malloc or calloc function we are stealing a part of the top chunk.\newline
     The value indicated in gdb previously is the remaining space of the heap memory.\newline
     In many glibc version the top chunk value hasn't any type of integrity check, this will be the point of the heap overflow.\newline
+    \clearpage
+    
     \section{How it works a Heap Overflow}
+    As explained previously, malloc(), calloc() and realloc() are libc functions that allow you to create portions of dynamic memory called chunks into which data can be inserted dynamically.
+    But if these features are used incorrectly, there is a possibility that an attacker will exploit these mistakes to create critical attacks.
+    \begin{verbatim}
+        void *malloc(size_t size);
+        void *calloc(size_t nmemb, size_t size);
+        void *realloc(void *ptr, size_t size);
+    \end{verbatim}
+    These are the definitions of malloc calloc and realloc from the linux manual, as you can see all the functions require a size, which is often the cause of many heap overflows.
+    The following is vulnerable code that shows a misuse of size within these functions:
+    \begin{verbatim}
+        #include <stdio.h>
+        #include <stdlib.h>
+        void setup() {
+          setbuf(stdin, NULL);
+          setbuf(stderr, NULL);
+          setbuf(stdout, NULL);
+        }
+        
+        int main(){
+            setup();
+            puts("Insert your name: ");
+        
+            char *buf = malloc(100);
+            if (buf == NULL) {
+                fprintf(stderr, "Error malloc failed, NO INPUT");
+                return 1;
+            }
+            scanf("%s", buf);
+            printf("hello %s\n", buf);
+        
+            free(buf);
+            return 0;
+        }
+    \end{verbatim}
+    This code contains a critical bug, as can be seen when user input is entered, scanf is not used correctly, in fact the correct use is to specify \%n-1s in the format string where n is the size of the buffer and minus one is used because scanf add a null byte as a terminator.
+    \clearpage
+    Consequently if the user enters more than 96 characters there will be a heap overflow.\newline
+    Potential payload and heap analysis:
+    \begin{verbatim}
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    \end{verbatim}
+        \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=1\linewidth]{heap_overflow.png}
+        \caption{Heap overflow viewed in gdb }
+        \label{fig:enter-label}
+    \end{figure}
+    How can we analyze the chunk that we have allocated "buf" is allocated previously compared to the value of the top chunk, so by performing an overflow we will overwrite the value of the top chunk with the value 0x4141414141414141
+    the heap will think that the size of the remaining heap will be an arbitrary number.\newline
+    At this point the program will not crash because at the time I am writing this thesis no type of integrity check on the size of the top chunk has been implemented, this allows us to create arbitrary write.
+    \paragraph{Craft arbitrary write}
+    
+
     \clearpage
     \section{overview challenge and attack planning}
     to be continued
