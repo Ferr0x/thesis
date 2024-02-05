@@ -30,7 +30,7 @@
     
     
     %overview 
-    \chapter{overview}
+    \chapter{Introduction}
     introduction and some stuff
     % Capitolo buffer overflow
     \section{Tooling}
@@ -480,29 +480,25 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     How can we analyze the chunk that we have allocated "buf" is allocated previously compared to the value of the top chunk, so by performing an overflow we will overwrite the value of the top chunk with the value 0x4141414141414141
     the heap will think that the size of the remaining heap will be an arbitrary number.\newline
     At this point the program will not crash because at the time I am writing this thesis no type of integrity check on the size of the top chunk has been implemented, this allows us to create arbitrary write.
+    \clearpage
     \paragraph{Craft arbitrary write}
-    
     Basically in the world of exploitation we always try to have arbitrary writes and arbitrary reads.\newline
-    Arbitrary read permit us to read addresses that allow us to bypass mitigations such as aslr, canary. \newline
+    Arbitrary read permit us to read addresses that allow us to bypass mitigations such asth aslr, canary. \newline
     Arbitrary writes to overwrite addresses that lead us to have remote command execution.
     In the case of the example shown above we have no print source so crafting an arbitrary read is impossible but in larger and more complicated systems they can be found. \newline
-    But we have an arbitrary writing source, in fact we can overwrite the size of the top chunk making it giant until we reach the entry we want to overwrite
+    But we have an arbitrary writing source, in fact we can overwrite the size of the top chunk making it giant and managing to overwrite the libraries and stack sections so as to overwrite sensitive data.
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.7\linewidth]{heap_arb_write.jpg}
-        \caption{Enter Caption}
+        \includegraphics[width=1\linewidth]{heap_trasformation.jpg}
+        \caption{heap after overwriting top chunk}
         \label{fig:enter-label}
     \end{figure}
-    \begin{figure}[htbp]
-        \centering
-        \includegraphics[width=1\linewidth]{heap_after_arb_write.jpg}
-        \caption{Enter Caption}
-        \label{fig:enter-label}
-    \end{figure}
-
     \clearpage
+    
     \section{overview challenge and attack planning}
-    to be continued
+    In this section we will analyze a challenge that I solved during the csaw qualifier competition, a competition organized by an American team where the top 8 teams went to New York to play the finals.\newline
+    In the challenge we will analyze there is a heap overflow bug, the name of the challenge is phrack. \newline
+    
     \clearpage
     \section{exploit analisys}
     to be continued
