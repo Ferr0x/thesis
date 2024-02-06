@@ -32,7 +32,6 @@
     %overview 
     \chapter{Introduction}
     introduction and some stuff
-    % Capitolo buffer overflow
     \section{Tooling}
     In this thesis i will use many tools such as: 
        \begin{itemize}
@@ -45,7 +44,7 @@
         both tools are used in the reverse engineering part.\newline
     \end{itemize}
     
-    \chapter{Buffer Overflow vulnerability}
+    \chapter{Stack Buffer Overflow vulnerability}
     \section{background} %---------------------fix this text ------------------
     Buffer overflow is a critical vulnerability that emerged around the 1970s and 1980s where it was 
     realized through research which leads the attacker to uncontrolled access to critical points of memory.\newline
@@ -65,7 +64,7 @@
     Even though vulnerability was born so many years ago it still is one of the biggest an dangerous vulnerablity.
     \clearpage
     %-----------------fix until here--------------------
-    \section{How Buffer Overflow works}
+    \section{How Stack Buffer Overflow works}
     A buffer overflow occurs when the attacker can write more input than expected from the buffer, the overflow input exceeds in the memory in the location right after the buffer we are allocating, this could be very dangerous.\newline
     here's an example:
     \begin{verbatim}
@@ -84,7 +83,7 @@
     State of the buffer before inserting input:\newline
     \begin{figure}[h]
     \centering
-    \includegraphics[width=13cm]{Organigrammi.png}
+    \includegraphics[width=13cm]{chunk_wout_cacnary.png}
     \caption{Empty stack}
     \label{fig:example_empty_buffer}
     \end{figure}
@@ -114,7 +113,7 @@
         \label{fig:stack w overflow}
     \end{figure}
     \clearpage
-    \section{Mitigations against Buffer Overflow}
+    \section{Mitigations against Stack Buffer Overflow}
     \subsection{Stack Canary}
     The stack canary is a protection that was invented in the 90s to prevent a buffer overflow from occurring.
     It consists of generating a protection value, generated at run time and therefore different for each time a program is executed, but remains for the entire execution of the program.
@@ -410,7 +409,7 @@ To understand the mitigations the pwntools library help us, in fact there is a f
 
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=1.2\linewidth]{image.png}
+        \includegraphics[width=1.2\linewidth]{chunk_structure.png}
         \caption{chunk in gdb}
         \label{fig:enter-label}
     \end{figure}
@@ -493,12 +492,47 @@ To understand the mitigations the pwntools library help us, in fact there is a f
         \caption{heap after overwriting top chunk}
         \label{fig:enter-label}
     \end{figure}
-    \clearpage
+    \section{Mitigation}
+    unfortunately the house of force technique, even if I decided to explain it previously, is deprecated since the glibc version 2.27, at the time of writing this thesis we are at 2.35 and many mitigations have been added that prevent the use of the house of force technique.\newline
+    Inside the heap, many mitigations have been added within the glibc to avoid launching attacks, in this section we will only analyze those related to house of force and in the next section bypass techniques will be explained.\newline
+    As explained previously, house of force consists of overwriting the top chunk so as to make it huge, exceeding the heap memory and being able to read/overwrite the entry that will allow us to do RCE.\newline
+    \paragraph{Top Chunk integrity check}
+    Overwriting the top chunk with a size larger than that established by the creation of the heap is impossible, in fact this portion of code has been added within the code:\newline
+    \begin{verbatim}
+        victim = av->top;
+        size = chunksize (victim);
     
+        if (__glibc_unlikely (size > av->system_mem))
+            malloc_printerr ("malloc(): corrupted top size");
+  
+    \end{verbatim}
+    This code, as you can imagine, even if the rest of the code is absent, carries out a check on the size of the chunk, in fact if we try to create a chunk that overwrites the top and subsequently create another allocation on the heap will be print the string, "malloc( ): corrupted top size".
+    \paragraph{Safe Linking}
+    The fundamental idea of safe linking is to mask the addresses within the linked lists that manage fastbin and tcache bins.\newline
+    The technique that exploits safe linking uses ASLR mitigation which I explained in the stack buffer overflow mitigations chapter.\newline
+    The forward pointer inside the fastbin and tcache bins from glibc version 2.32 will be XOR'd with the bits randomized by aslr.
+    This mitigation does not allow attackers to have a clean pointer to the list of freed chunks.
+    A hypothetical situation could be: \newline
+    p : represents the value of the pointer that is saved by the fd field.\newline
+    l : represents the address space where the fd is stored.\newline
+    l >> 12:  shifted right by 12 is used to XOR P resulting in an encoded pointer, P'.\newline
+    Below is an example written in Python that explains how safe linking masking and unmasking works: 
+    \begin{verbatim}
+
+    p = 0x0000BA9876543180
+    l = 0x0000BA9876543180
+    x = x = p ^ (l>>12) # masket ptr 
+    print("masked ptr: ", hex(x))
+    lbitshifted = l >> 12 
+    y = x ^ lbitshifted
+    print("unmasked ptr: ", hex(y))
+    \end{verbatim}
+    
+        
     \section{overview challenge and attack planning}
     In this section we will analyze a challenge that I solved during the csaw qualifier competition, a competition organized by an American team where the top 8 teams went to New York to play the finals.\newline
     In the challenge we will analyze there is a heap overflow bug, the name of the challenge is phrack. \newline
-    
+
     \clearpage
     \section{exploit analisys}
     to be continued
@@ -518,7 +552,7 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     \chapter{Conclusion}
     to be continued
     \section{online references}
-    \href{https://it.wikipedia.org/wiki/Home_page}{wikipedia}
-    
+    \href{https://it.wikipedia.org/wiki/Home_page}{wikipedia}\newline
+    \href{https://it.wikipedia.org/wiki/Home_page}{Heap Lab course}
     \clearpage
 \end{document}
