@@ -647,10 +647,88 @@ To understand the mitigations the pwntools library help us, in fact there is a f
         \caption{heap leak}
         \label{fig:enter-label}
     \end{figure}
-    \paragraph{craft arbitrary read and leak environ}
-    \paragraph{craft arbitrary write and rewrite return address}
-    \paragraph{profit}
-   
+    \paragraph{craft arbitrary read and leak environ with tcache poisoning attack}
+    At this point we have all the leaks, in most heap exploits you need to craft arbitrary read and write, with these two techniques it is possible to perform many attacks.\newline
+    First we will create an arbitrary read to leak the environ.\newline
+    Environ is a pointer that usually points to the stack and is useful because it will always be at the same offset away from the return addres.\newline
+    So the plan is to leak environ so as to understand how far away we are from the return address and then overwrite the return address with a rop and do remote command execution.\newline
+    The technique we will use to leak environ is very reminiscent of the one to leak base heap.\newline
+    In fact we can allocate two chunks with a size that will allow us to place them in tcache once they are freed and contiguous,  having 16 bytes of overflow we will be able to overwrite the size of the next previously freed one and overwrite the fd field with the environ address.\newline
+    Then reallocate the chunk and inspect it, thus effectively leaking the environ.\newline
+    Below is the code that allowed me to leak environ:\newline
+    \begin{verbatim}
+        malloc(0x78,3) # 3
+        malloc(0x78,4) # 4 
+        malloc(0x78,5) # 4 
+        delete(5)
+        delete(4) # 4
+        edit(3,b"A"*0x78+p64(0x81)+p64(libc.sym.environ^key))
+        malloc(0x78,4)  
+        malloc(0x78,5) 
+        view(5)
+        io.recvuntil(b"note : ")
+        environ=u64(io.recvline(False).ljust(8,b"\x00"))
+        success(f"ENVIRON LEAK@: {hex(environ)} ")
+    \end{verbatim}
+    The image above explains the attack we just saw.\newline
+    Furthermore, you will notice within the code that I have made that there are more allocations than those that I explained in the theoretical attack, in fact a critical point of heap exploitation is consolidation, glibc has optimization and memory saving techniques that if larger chunks than those previously used are allocated, the smaller ones will be consolidated.
+    In this case we founded that environ it's faraway 0x120 bytes from main return address.\newline
+    \begin{figure}
+        \centering
+        \includegraphics[width=1\linewidth]{arb_read_heapchall.png}
+        \caption{Enter Caption}
+        \label{fig:enter-label}
+    \end{figure}
+    
+    \paragraph{craft arbitrary write and rewrite return address with tcache poisoning attack}
+    At this point all we have to do is overwrite environ + 0x120, therefore the return address.\newline
+    Arbitrary write works in the exact same way as arbitrary read but with the difference that instead of inspecting the function to leak any pointers, we have to write, so instead of the viewNote function we will use Editnote.\newline
+    So as before we will create two chunks with size which will allow us to stay inside tcache, free the second to exploit the first so as to overwrite the size field with a fake size and the fd field with environ + 120 which corresponds to the return address.\newline
+    \clearpage
+    Follows the code that i used:\newline
+    \begin{verbatim}
+        malloc(0x18,1)
+        malloc(0x18,2)
+        malloc(0x18,3)
+        delete(1)
+        delete(2)
+        delete(3)
+        malloc(0x108,3) # 3
+        malloc(0x108,4) # 4 
+        malloc(0x108,5) # 4 
+        delete(5)
+        delete(4) # 4
+        edit(3,b"B"*0x108+p64(0x111)+p64((environ-0x128)^key))
+        malloc(0x108,4)  
+        malloc(0x108,5)
+    \end{verbatim}
+    From this portion of code you can see how in addition to having created arbitrary write we are bypassing safe linking by xoring the environ address with the key leaked at the beginning of the exploit.\newline
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.5\linewidth]{arb_write_heapchall.png}
+        \caption{Arbitrary write}
+        \label{fig:enter-label}
+    \end{figure}
+    \clearpage
+    \paragraph{rop attack and remote command execution}
+    Finally we need to write the rop that will allow us to spawn a /bin/sh shell so as to execute commands remotely.\newline
+    As explained in the stack buffer overflow chapter, rop is an attack that allows us to execute instructions and jump to another instruction via ret.\newline
+    The rop structure of the rop that we will execute will look like this:
+    \begin{verbatim}
+        pop rdi; ret;
+        address of "/bin/sh\x00"
+        system 
+    \end{verbatim}
+    In this way the return address will insert the address of "/bin/sh" into the rdi register and ret will point to the system call inside the libc.\newline
+    So we will make a call to system("/bin/sh").\newline
+    Last but not least, our menu that allows us to add, edit, inspect and remove notes is inside a while true and even if the return address of main will be overwritten we will never call it.\newline
+    Fortunately there is a call to exit that allows us to exit the while true and call return 0 of main which pops our shell correctly.\newline
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=1\linewidth]{RCE_chall_heap.png}
+        \caption{Enter Caption}
+        \label{fig:enter-label}
+    \end{figure}
     \clearpage
     \section{exploit analisys}
     to be continued
