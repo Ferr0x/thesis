@@ -770,10 +770,15 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     The task of this mitigation is to marks all user space pages as inaccessible when the process is in kernel mode, and prevents kenel space from reading or writing user space memory.\newline
     SMAP In the linux kernel is enabled by setting the twenty-first bit of Control Register CR4.\newline
     
-
-    
-
     \subsection{kaslr}
+    As we saw previously in the Stack Buffer Overflow chapter, stack randomization is carried out by ASLR, even in the Linux kernel there is an address randomization that prevents sensitive data from being called directly, this is called KASLR. \newline
+    KASLR as ASLR for the stack, randomize the addresses  of the code and data sections of the linux kernel and device drivers.\newline
+    Unlike aslr which randomizes memory sections every time a program is started in userspace, the linux kernel cannot shut down after the power-on phase, so KASLR will randomize addresses once after the boot phase.\newline
+    Consequently, if we manage to leak an address after booting the kernel, the randomization will always be the same.\newline
+    Since the beginning of 2020, a new version of kaslr has been released and it is called FGKASLR, which stand for Functions Granular Kernel Address Space Layout Randomization.\newline 
+    This is a technology that randomizes addresses for each function in the Linux kernel.\newline 
+    Although the address of a function in the Linux kernel can be leaked, it is not possible to determine the base address, the only way to leak the base is to extrapolate a pointer to the data section, in fact this is not randomized and allows you to find the base address.\newline
+
     \subsection{kpti}
     
     \section{Overview challenge}
