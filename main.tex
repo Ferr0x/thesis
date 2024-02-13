@@ -9,7 +9,7 @@
 \begin{titlepage}
     \centering
     \vspace*{\fill}
-    \Huge \textbf{Modern Techniques for Exploiting Overflows in Diverse Environments: Stack, Heap, and Kernel Perspectives}
+    \Huge \textbf{Modern Techniques for Exploiting Overflows in Diverse Environments: Stack, Heap, and Linux Kernel}
     \vspace{2cm} 
     
     \Large Lorenzo Ferrari
@@ -37,8 +37,10 @@
     %overview 
     \chapter{Introduction}
     possibili titoli: \newline
-    -Modern Techniques for Exploiting Overflows in Diverse Environments: Stack, Heap, and Kernel Perspectives.
+    -Exploiting Overflows: Techniques in Stack, Heap, and Linux Kernel.
+    -Modern Techniques for Exploiting Overflows in Diverse Environments: Stack, Heap, and Linux Kernel.
     -Modern exploits for overflows on environments such as stack heap and kernel stack
+    
     \section{Tooling}
     In this thesis i will use many tools such as: 
        \begin{itemize}
@@ -775,10 +777,95 @@ To understand the mitigations the pwntools library help us, in fact there is a f
         \item[$\bullet$] Pseudo-device
         \begin{itemize}
             \item[$\circ$] IOCTLs
-            \item[$\circ$] Open / Read / Write / Close operations
         \end{itemize}
+        \item[$\bullet$] copy\_to\_user and copy\_from\_user
+
     \end{itemize}
+    \clearpage
+    Syscall: 
+    Syscalls or system calls have the task of requesting services from the kernel such as file management, process creation, hardware management and many other things.\newline
+    Communication between user space and kernel space occurs according to some points:\newline
+    \begin{itemize}
+    \item Request from User Space: A user program requests sends a service request to the kernel via a syscall, the call can be called from an ELF executable for example.\newline
+    \item Passing parameters:The syscall specifications are defined in the registers as rax (defines the syscall number), rdi (usually a pointer to the file descriptor) and so for each syscall all registers have an identifier.\newline
+    \item Kernel Space transition and syscall management: At this point, based on the parameters passed, if there are no errors, the kernel executes the system call, and if necessary returns a value.\newline
+    \item Return to the User Space: As a final step, the kernel returns control to the user process.\newline
+\end{itemize}
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.8\linewidth]{syscall.png}
+        \caption{System calls}
+        \label{fig:enter-label}
+    \end{figure}
+    \clearpage
+    Pseudo-Device:Pseudo-devices are virtual devices that provide a user interface for accessing specific kernel functionality, are usually exposed under /dev /proc.\newline
+    They support operations such as reading and writing and many others.
+    An example is:
+    \begin{verbatim}
+        int main(){
+            char buff[10];
+            int fd = open("/dev/urandom", 0_RDONLY);
+            read(fd, buf, 10);
+            return 0;
+        }
+    \end{verbatim}
+    IOCTLs: stands for input/output control and is nothing more than a system call for a specific device that implements an operation that cannot be expressed by a regular semantic file.\newline
+    Like a normal system call it requires parameters and will subsequently communicate with the kernel like a normal syscall.\newline
+    An IOCTL example follows: 
+    \begin{verbatim}
+        #include <sys/ioctl.h> 
+        #define IOCTL_READ 0x1 
+        typedef struct arg { 
+            char *msg; 
+            size_t len;
+         } arg_t; 
+        int main() { 
+            int fd = open("/dev/hello", O_RDWR); 
+            if (fd == -1) { 
+                perror("open()"); 
+                exit(1); 
+            } 
+            int len = 20; 
+            char *buf = calloc(len, sizeof(char)); 
+            arg_t args = { 
+                .msg = buf, 
+                .len = len 
+            }; 
+            ioctl(fd, IOCTL_READ, &args); 
+            printf("read: %s\n", args.msg); 
+            close(fd); 
+            free(buf); 
+            return 0; 
+         }
     
+    \end{verbatim}
+    \clearpage
+    Safely copying data between user and kernel space: 
+    \begin{itemize}
+        \item copy\_from\_user:This is a function implemented by the kernel that allows you to copy data from user space to kernel space, usually taking a pointer to the destination buffer, a pointer to the buffer from which to copy and the size of the data to be copied.\newline
+        \item copy\_to\_user:This is a function implemented by the kernel that allows you to copy data from the kernel space to the user space, usually taking a pointer to the destination buffer, a pointer to the buffer from which to copy and the size of the data to be copied.\newline
+    \end{itemize}
+    Follow an example of copy\_from\_user and copy\_to\_use:\newline
+    \begin{verbatim}
+        unsigned long _copy_to_user(void __user *to, const void *from, unsigned long n) 
+        { 
+        ... 
+            if (access_ok(to, n)) { 
+                instrument_copy_to_user(to, from, n); 
+                n = raw_copy_to_user(to, from, n); 
+            } 
+        ... 
+        } 
+        unsigned long _copy_from_user(void *to, const void __user *from, unsigned long n) 
+        { 
+            ... 
+            if (... && likely(access_ok(from, n))) { 
+                instrument_copy_from_user(to, from, n); 
+                res = raw_copy_from_user(to, from, n); 
+            } 
+            ... 
+        } 
+    \end{verbatim}
     \section{how it works a kernel stack buffer overflow in the linux kernel}
     to be continued    
     \clearpage
