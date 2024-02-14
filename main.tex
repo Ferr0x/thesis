@@ -972,6 +972,40 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     \clearpage
     \section{How to exploit a stack buffer overflow in the linux kernel}
     \paragraph{Introduction}
+    In this section we will analyze a vulnerable kernel module.\newline
+    By running the uname -r command we will notice that we are facing the following kernel version:\newline
+    5.10.7 a fairly old version.\newline
+    However, exploitation and mitigation bypass techniques also work in more recent kernels.\newline
+    By downloading the challenge we will notice that we will have 2 main folders:\newline
+    \begin{itemize}
+        \item qemu 
+        \item src 
+    \end{itemize}
+    The directory src contains the source code of the driver kernel and the file .ko .\newline
+    The directory qemu contains the bzImage that is a compressed image of the kernel, and the rootfs.cpio which is a compressed archive that contains the root filesystem of the operating system.\newline
+    once decompressed we will find the rootfs therefore trivially all the directories /bin /sbin /etc and all the rest that I have not named. \newline
+    inside the qemu folder we also find the run.sh file which contains the following code:\newline
+    
+    \begin{verbatim}
+        #!/bin/sh
+        qemu-system-x86_64 \
+            -m 64M \
+            -nographic \
+            -kernel bzImage \
+            -append "console=ttyS0 loglevel=3 oops=panic panic=-1 pti=1 kaslr +smep +smap" \
+            -no-reboot \
+            -cpu qemu64 \
+            -smp 1 \
+            -monitor /dev/null \
+            -initrd rootfs_updated.cpio \
+            -net nic,model=virtio \
+            -net user \
+            -gdb tcp::12345 \
+    \end{verbatim}
+    The kernel is launched via qemu, a system that allows you to emulate the system you want to launch, this system is used for various reasons, such as:\newline
+    Be safer and not launch a vulnerable kernel on your computer, qemu allows you to manage memory and finally we can debug the kernel with gdb even if in a limited way because it is emulated.\newline
+    The code above specify the image kernel we want to run with the field -kernel the mitigations we want to apply to the system in the field -appen, we can see that there are all mitigations activated, and some other details.\newline
+    
     \paragraph{Reverse engineering}
     \paragraph{...}
     % capitolo conclusioni
