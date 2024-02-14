@@ -867,7 +867,30 @@ To understand the mitigations the pwntools library help us, in fact there is a f
         } 
     \end{verbatim}
     \section{how it works a kernel stack buffer overflow in the linux kernel}
-    to be continued    
+    Buffer overflow on the Linux kernel follows the logic of normal stack buffer overflow in user memory.
+    A buffer overflow on the kernel occurs when we can write more input than the buffer that the program makes available can contain.\newline    
+    \begin{verbatim}
+    int unsafe_function(void) {
+      char buffer[16];
+      int ret;
+      struct file *file = filp_open("/path/to/file", O_RDONLY, 0);
+      if (IS_ERR(file)) {
+            printk(KERN_ERR "Error   opening file\n");
+            return PTR_ERR(file);
+      }
+      ret = copy_from_user_n(buffer, file->f_dentry->d_inode->i_private, len);
+          if (ret < 0) {
+            printk(KERN_ERR "Failed copy\n");
+            filp_close(file);
+        return ret;
+      } 
+      filp_close(file);
+    
+      return 0;
+}    
+    \end{verbatim}
+    The code above may be vulnerable, in fact in the call to copy\_from\_user the size of the second argument buffer is not checked, if by chance this buffer exceeds sixteen characters a buffer overflow will occur on the kernel.\newline
+    The technique of exploiting a buffer overflow within the kernel is similar to that seen in the second chapter except that we are in a different structure and we have new mitigations that will be explained later.\newline
     \clearpage
     \section{mitigations}
     The Linux kernel is vital for all Linux-based systems. However, due to its extensive codebase, numerous bugs are continually being identified by researchers. To address this, the Linux kernel incorporates multiple mitigations, making exploitation techniques significantly challenging.\newline
