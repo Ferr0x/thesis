@@ -229,7 +229,7 @@
     \end{figure}
     \clearpage
     \section{How to exploit a stack buffer overflow in the linux kernel}
-    \paragraph{Introduction}
+    \subsection{Introduction}
     In this section we will analyze a vulnerable kernel module.\newline
     By running the uname -r command we will notice that we are facing the following kernel version:\newline
     5.10.7 a fairly old version.\newline
@@ -260,9 +260,71 @@
             -net user \
             -gdb tcp::12345 \
     \end{verbatim}
-    The kernel is launched via qemu, a system that allows you to emulate the system you want to launch, this system is used for various reasons, such as:\newline
+    The kernel is set up via qemu, a system that allows you to emulate an environment you want to launch, qemu is used for various reasons, such as:\newline
     Be safer and not launch a vulnerable kernel on your computer, qemu allows you to manage memory and finally we can debug the kernel with gdb even if in a limited way because it is emulated.\newline
     The code above specify the image kernel we want to run with the field -kernel the mitigations we want to apply to the system in the field -appen, we can see that there are all mitigations activated, and some other details.\newline
+
+    \subsection{Reverse engineering}
+    As with real word applications, the kernel source code is present, this facilitates the reverse engineering part.\newline
+    In fact, we won't have to waste time understanding structures that decompilers don't interpret.\newline
+    Four trivial functions write, read, open, close are implemented in this kernel module.\newline
+    I will focus on explaining only the most important bug that resides in the write, the code of this function follows:\newline
+    \begin{verbatim}
+        static ssize_t module_write(struct file *file,
+        const char __user *buf, size_t count, loff_t *f_pos)
+            {
+              char kbuf[BUFFER_SIZE] = { 0 };
+            
+              printk(KERN_INFO "module_write called\n");
+            
+              if (_copy_from_user(kbuf, buf, count)) {
+                printk(KERN_INFO "copy_from_user failed\n");
+                return -EINVAL;
+              }
+              memcpy(g_buf, kbuf, BUFFER_SIZE);
+            
+              return count;
+            }
+    \end{verbatim}
+    The bug inside this code is very simple but unfortunately the code above is missing a detail to understand the bug.\newline
+    In fact, in the copy\_from\_user call the count variable will be decided by the user and kbuf has a maximum size of 0x400, so what could happen if we put 0x450 user input?\newline
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=1\linewidth]{Images/kernel_panic.png}
+        \caption{kernel panic}
+        \label{fig:enter-label}
+    \end{figure}
+
     
-    \paragraph{Reverse engineering}
-    \paragraph{...}
+    We managed to overwrite the return address with the value 0x4141414141414141 causing a kernel panic, and having return address control.\newline
+    \subsection{Attack plan and Exploit analysis}
+    As seen previously we have RIP control, in this section we will see how to do privilege escalation and bypass active mitigations.\newline
+    The goal is to call the following function via a ROP:\newline
+    \begin{verbatim}
+        commit_creds(prepare_kernel_cred(NULL));
+    \end{verbatim}
+prepare\_kernel\_cred(NULL) creates a new set of credentials with kernel privileges, commit\_creds updates the current process credentials to those created by prepare\_kernel\_cred.\newline
+    Once the chain that will allow us to do LPE is finished, we will have the entire stack destroyed because the ROP modifies registers on which the kernel performs integrity checks, so before returning to user space and running a shell as if nothing had happened, we will have to restore these logs.\newline
+    There is no point in gaining root privileges if the program crashes or the process terminates.\newline
+   Using the following shellcode we will slave the state of the registers before the ROP.\newline
+    \begin{verbatim}
+    static void save_state() {
+      asm(
+          "movq %%cs, %0\n"
+          "movq %%ss, %1\n"
+          "movq %%rsp, %2\n"
+          "pushfq\n"
+          "popq %3\n"
+          : "=r"(user_cs), "=r"(user_ss), "=r"(user_rsp), "=r"(user_rflags)
+          :
+          : "memory");
+    }
+    
+    \end{verbatim}
+    The shellcode we see above allows us to save the registers of the stack segment code segment, RSP can have any value inside the stack and RIP we can set it so that it points to a function that launches a shell.\newline
+    At this point just write a function that calls commit creds and prapare\_kernel\_creds and we have a root shell?\newline
+    Absolutely not, unfortunately SMEP comes into play, in fact when the RIP is overwritten and tries to point and execute a function that is kernel space but is executable as user mode SMEP will block the execution with the following error:
+    \begin{verbatim}
+        unable to execute userspace code (SMEP?)
+    \end{verbatim}
+    
