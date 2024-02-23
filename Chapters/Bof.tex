@@ -1,6 +1,6 @@
 \chapter{Stack Buffer Overflow Vulnerability}
     \section{Background} 
-    Buffer overflow is a critical vulnerability that emerged around the 1970s and 1980s where it was 
+    Buffer overflow is a critical vulnerability that emerged around the 1970s and 1980s when it was 
     realized through research which leads the attacker to uncontrolled access to critical points of memory.\newline
     As the 1990s arrived the explosion of the Internet and its client-server infrastructure led large numbers of people to use buffer overflow.\newline
     Furthermore, in this period the first books were published explaining how buffer overflow works.\newline
@@ -32,7 +32,8 @@
         return 0;
     }
     \end{verbatim}
-    In this example we can see a bad usage of \texttt{scanf} function. In fact, this program has a char buffer with a size of 30, but the scanf function can read up to 50 chars.\newline 
+    In this example, we can see a bad usage of the \texttt{scanf} function.\newline
+    This program has a char buffer with a size of 30, but the scanf function can read up to 50 chars.\newline 
     What happens if we insert more input than expected for the buffer?\newline
     The state of the buffer before inserting input is reported in Fig \ref{fig:example_empty_buffer}:\newline
     \begin{figure}[h]
@@ -44,7 +45,7 @@
        \clearpage
     In the example, we can notice that we have our buffer instantiated.\newline
     The question marks were written instead of 0x0000000000000000 because the memory at the beginning of the program is instantiated for the program being executed, but this memory had previously been used in other contexts.\newline
-    Now we will try to insert the following paylaod:
+    Now we will try to insert the following payload:
     \begin{verbatim}
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPPBBBBBBBBCCCCCCCC
     \end{verbatim}
@@ -131,8 +132,8 @@
     \end{figure}
 
     \subsection{PIE}
-    PIE stands for Position Independent Executable and is very similar to ASLR, in fact it follows the same concept as ASLR but with the binary assembly memory region.\newline
-    As can be interpreted from the name Position Independent gives the possibility for a binary to be loaded and executed in memory at arbitrary addresses, this means that the program data instead of referring to addresses in fixed memory are referenced through the use of an offset random to the current position where it is loaded plus the offset.
+    PIE stands for Position Independent Executable and is very similar to ASLR, in fact, it follows the same concept as ASLR but with the binary assembly memory region.\newline
+    As can be interpreted from the name Position independence gives the possibility for a binary to be loaded and executed in memory at arbitrary addresses, this means that the program data instead of referring to addresses in fixed memory are referenced through the use of an offset random to the current position where it is loaded plus the offset.
     
     \begin{table}[h] % Utilizzo [b] per posizionare la tabella in fondo alla pagina
       \centering
@@ -153,8 +154,8 @@
     \clearpage
 
     \section{How to exploit a buffer overflow and demonstration of a challenge}
-    In this chapter will be explain the techniques used to exploit a buffer overflow and demonstrate how the techniques work with an example of an exploit.\newline
-    As a demonstration we will analyze challenge proposed as training in preparation for the national competition.\newline
+    This chapter will explain the techniques used to exploit a buffer overflow and demonstrate how the techniques work with an example of an exploit.\newline
+    As a demonstration, we will analyze the challenge proposed as training in preparation for the national competition.\newline
     The following challenge was found and chosen for presentation because it includes the bypass of all mitigations and features an exploitation technique that remains highly effective.\newline
     The challenge is called terminator and two files are attached:
 
@@ -167,10 +168,10 @@
     \subsection{Plan and organization of steps to carry out a challenge}
     When it comes to finding bugs in real-world applications or solving cybersecurity challenges, the approach can be divided into four main points: \newline
     \begin{itemize}
-        \item[Step 1:] understand the environment.
-        \item[Step 2:] reverse engineering.
-        \item[Step 3:] understand which mitigations are.
-        \item[Step 4:] write the exploit and test it.
+        \item[Step 1:] Understand the environment.
+        \item[Step 2:] Reverse engineering.
+        \item[Step 3:] Understand which mitigations are.
+        \item[Step 4:] Write the exploit and test it.
     \end{itemize}
 
     \subsection{Understand the envirnoment}
@@ -182,10 +183,10 @@
     \subsection{Reverse Engineering}
     This is one of the most important and complicated phases, in fact from a binary file using tools such as IDA or Ghidra which interpret binary files and decompile them to make this phase easier.\newline
     Certainly, even with very powerful tools like these, the decompiled code will never be as clean as the original code.\newline
-    In fact this phase involves an interpretation of the code through the decompiled code and the assembly that is shown.
+    In fact, this phase involves an interpretation of the code through the decompiled code and the assembly that is shown.
     I decide to show a challenge with a very simple.
     I decided to show a challenge that has a simple reverse engineering part because the topic of the thesis is the exploitation phase.\newline
-    In fact we come across the following function which contains two critical bugs:\newline
+    We come across the following function which contains two critical bugs:\newline
     \clearpage
     \begin{figure}[htbp]
         \centering
@@ -195,7 +196,7 @@
     \end{figure}
     %ARRIVATO QUA
     As we can see the decompiled version does not interpret the names of the variables and the types, in this specific case the reverse engineering part is simple but can usually take several hours.\newline
-    After a small adaptation the code we interpreted is the following:\newline
+    After a small adaptation, the code we interpreted is the following:\newline
 
  \begin{verbatim}
      void welcome(void)
@@ -220,9 +221,9 @@
       return;
     }
  \end{verbatim}
-        From this code we can interpret two critical bugs and one mitigation.\newline
-    Initially a char buffer of size fifty six is instantiated, some prints are made and then we encounter the first bug.\newline
-    The read function, as we can read from the manual, reads the number of bytes indicated within the function, in this specific case fifty six and does not add the null byte by default, in fact the programmer added it manually in the position that reflects the bytes read , however causing an off by one because it will put the null byte in the next byte at the end of the buffer, overwriting the first least significant byte of the next address.\newline
+        From this code, we can interpret two critical bugs and one mitigation.\newline
+    Initially, a char buffer of size fifty-six is instantiated, some prints are made and then we encounter the first bug.\newline
+    The read function, as we can read from the manual, reads the number of bytes indicated within the function, in this specific case fifty-six, and does not add the null byte by default, in fact, the programmer added it manually in the position that reflects the bytes read, however causing an off by one because it will put the null byte in the next byte at the end of the buffer, overwriting the first least significant byte of the next address.\newline
     vulnerable code:\newline
     \begin{verbatim} 
         char buffer [56];
@@ -236,7 +237,7 @@
     char buffer [56];
     read(0,buffer,72);
     \end{verbatim}
-    Finally, from this function we can understand something that we would have analyzed later but realizing it previously already makes us aware of a potential problem.\newline
+    Finally, from this function, we can understand something that we would have analyzed later but realizing it previously already makes us aware of a potential problem.\newline
     In fact, from the decompiled code we find the code used by the compiler to insert the canary stack, which will prevent us from doing buffer overflows without first leaking the canary stack.\newline
     vulnerable code:
     \begin{verbatim} 
@@ -248,7 +249,7 @@
     
     \clearpage
     \subsection{Understand which mitigations are active}
-To understand the mitigations the pwntools library help us, in fact there is a feature that allows us to check the mitigations only with the following command:
+    To understand the mitigations the pwntools library helps us, in fact, there is a feature that allows us to check the mitigations only with the following command:
     \begin{verbatim}
         checksec terminator                                     
 [*] '/home/ferro/Downloads/terminator'
@@ -258,16 +259,16 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     NX:       NX enabled
     PIE:      No PIE (0x400000)
     \end{verbatim}
-    And the checksec command shows that we have a amd64-64-little that stand for x86-64 infrastructure, we have also Full RELRO that means we cant overwrite any plt and got section infact that memory is mapped as read only section, is not important for this specific exploit but in other exploitation techniques can be a big obstacle to bypass.\newline
-    Than we have stack canary, we have already saw the canary code in the reverse engineering step, that confirm the presence of the canary, this will make our life difficult in the exploitation part.\newline
-    Furthermore we have NX enabled so we cant execute shellcode directly in the stack.\newline
-    And finally a good news we haven't PIE so the program data wont be randomize.\newline
+    And the checksec command shows that we have an amd64-64-little that stands for x86-64 infrastructure, we have also Full RELRO which means we can't overwrite any plt and got sections in fact that memory is mapped as read-only section, which is not important for this specific exploit but in other exploitation techniques can be a big obstacle to bypass.\newline
+    Then we have stack canary, we have already seen the canary code in the reverse engineering step, which confirms the presence of the canary, this will make our life difficult in the exploitation part.\newline
+    Furthermore, we have NX enabled so we can't execute shellcode directly in the stack.\newline
+    Finally, the good news we haven't PIE so the program data won't be randomized.\newline
     \subsection{Write the exploit and test it}
     \subsubsection{Leak canary and Base Pointer}
 
     The first step taken in the exploit was identifying the stack canary and saving the base pointer, as it would prove very useful later on.\newline
-    The first overflow is perfect for our work, in fact if we look in the decompiled code we can see how the name input produces a bug, an off by one and allows us to overwrite the first byte of the canary stack, a feature of the canary stack is that the first three nibbles and therefore the first and a half bytes are always zero.\newline
-    In fact the printf always prints up to the string terminator or null byte, this is the reason why the stack canary being after the name buffer will not be printed because the first byte is always a null byte.\newline
+    The first overflow is perfect for our work, if we look at the decompiled code we can see how the name input produces a bug, an off-by-one, and allows us to overwrite the first byte of the canary stack, a feature of the canary stack is that the first three nibbles and therefore the first and a half bytes are always zero.\newline
+    The printf always prints up to the string terminator or null byte, this is the reason why the stack canary being after the name buffer will not be printed because the first byte is always a null byte.\newline
     But what happens if we overwrite the first byte of the canary with off by one?\newline
     exploit code to leak the canary:
     \begin{verbatim} 
@@ -291,7 +292,7 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     \end{figure}
     As can be deduced from Fig \ref{fig:leaked_terminator_canary} these will be all the bytes that the printf has leaked to us until the arrival of a null byte, these bytes include the canary and the base pointer.\newline
     \clearpage
-    In the Fig \ref{fig:stack terminator} below we can analyze the state of the stack after the off by one.\newline
+    In Fig \ref{fig:stack terminator} below we can analyze the state of the stack after the off by one.\newline
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/draw_terminator_stack_canaryleak.png}
@@ -302,7 +303,7 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     As you can see the initial canary address \texttt{0x52eb83d416216c000}
     was overwritten in the last byte and became \texttt{0x52eb83d416216c0a}.\newline
     The printf not encountering null bytes either in the contents of the stack canary or in the contents of the save base pointer will print both.\newline
-    %ARRIVATO QUA
+    %ARRIVATO QUA 
     \subsubsection{Stack Pivoting and ASLR bypass}
     Now that we have the stack canary and the base pointer leak, we can move on to the part of the exploit that allows us to execute commands remotely.\newline
     Having NX as a mitigation we cannot write and execute shellcode on the stack so we will write a ROP chain.
@@ -314,19 +315,19 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     ~/home/ferro/Downloads/terminator ropper --file=terminator
     \end{verbatim}
     This command will give us more than a hundred instructions as output, following is a photo of the section of the most interesting ones.\newline
-    \begin{figure}[h]
+    \begin{figure}[htbp]
         \centering
-        \includegraphics[width=1.2\linewidth]{Images/rop_gadget.png}
-        \caption{ropper result}
-        \label{fig:ropper}
+        \includegraphics[width=1\linewidth]{Images/rop_gadget.png}
+        \caption{Enter Caption}
+        \label{fig:enter-label}
     \end{figure}
     
-    At this point we can actually try to pop a shell with a rop chain and do remote command execution, but we would encounter two main problems.\newline
+    At this point, we can actually try to pop a shell with a rop chain and do remote command execution, but we would encounter two main problems.\newline
     \begin{itemize}
         \item[Problem 1:] We don't have enough space after the overflow to perform a rop chain.
         \item[Problem 2:] We don't have the base of the libc to bypass aslr.
     \end{itemize}
-    So there are two solution: \newline
+    So there are two solutions: \newline
     \begin{itemize}
         \item[Solution 1:] Perform a stack pivoting attack.
         \item[Solution 2:] Leak  the libc address.
@@ -334,10 +335,10 @@ To understand the mitigations the pwntools library help us, in fact there is a f
     \clearpage
     \paragraph{Stack Pivoting}
 
-    When we don't have enough space for the rop chain we can perform an attack called stack pivoting, it consist in manipulating the stack to enlarge the stack that we have available. \newline
-    Basically we fake the rsp register to  enlarge the stack, there are many ways to perform a stack pivoting, we will find out my version later.\newline
+    When we don't have enough space for the rop chain we can perform an attack called stack pivoting, which consists in manipulating the stack to enlarge the stack that we have available. \newline
+    Basically, we fake the rsp register to enlarge the stack, there are many ways to perform stack pivoting, we will find out my version later.\newline
     \paragraph{Leak the Libc base}
-    To leak the base address of libc we will perform a puts of an got fuction address and after the leak, we will calculate the base of the libc doing :\newline
+    To leak the libc we just need to perform puts with the argument the entry of the libc puts which resides in the got.plt section, and then by doing the following mathematical calculations we will be able to leak it correctly:\newline
     \begin{verbatim}
         base Libc = address function with ASLR - fuction address
         with out ASLR  
@@ -359,12 +360,13 @@ To understand the mitigations the pwntools library help us, in fact there is a f
         )
         io.sendafter(b">", payload2)
     \end{verbatim}
-        
-    in this specific case we don't have space to write the rop chain after the return address so previously in addition to the canary I saved the base pointer so as to overwrite the current base pointer with the value of the previous leaked one -0x68 (size of our stack frame).\newline
+     We can only perform a \texttt{ROP} chain if the registers contain a net at the end.\newline
+    For example, for the libc leak, if we want to do \texttt{puts(got.puts)} we can use the \texttt{pop rdi gadget; ret} so after having written the gadget on the return address we will push the address of puts.got to rdi, and then we will call puts as ret.\newline   
+    In this specific case we don't have space to write the rop chain after the return address so previously in addition to the canary I saved the base pointer so as to overwrite the current base pointer with the value of the previously leaked one -0x68 (size of our stack frame).\newline
     By doing this, when we go to call the return we will perform a stack pivoting so we will move the stack and we will correctly leak the contents of the libc.\newline
     The call that will allow us to do stack pivoting is the leave ret call that is made every time we exit a function.\newline
-    In fact leave ret executes the following instructions mov rsp,rbp; pop rbp; por rdi;\newline
-    Subsequently we will perform the same attack but instead of leaking libc we will perform remote command execution, following is the code that allowed us to launch this attack.\newline
+    Leave ret executes the following instructions mov rsp,rbp; pop rbp; por rdi;\newline
+    Subsequently, we will perform the same attack but instead of leaking libc we will perform remote command execution, following is the code that allowed us to launch this attack.\newline
     \begin{verbatim}
     payload2=flat(
         p64(pop_rdi), #start of the rop 
@@ -382,3 +384,4 @@ To understand the mitigations the pwntools library help us, in fact there is a f
         \caption{remote coomand execution}
         \label{fig:enter-label}
     \end{figure}
+    \newpage
