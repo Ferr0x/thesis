@@ -1,22 +1,29 @@
-\chapter{Introduction}
-In this thesis, we will examine several cybersecurity vulnerabilities, focusing in particular on buffer overflows and heap overflows, with specific attention also to attacks on the Linux kernel.\newline
+   \chapter{Introduction}
+    Cybersecurity is a key concern in today's digital age, where the interconnectedness of systems exposes them to a myriad of threats.\newline
+    In this thesis, we will explore various cybersecurity vulnerabilities, delving into the realms of stack buffer overflows, heap overflows, and their implications, and further analyze a stack buffer overflow within the Linux kernel.\newline
 
-Chapter 2 will address the concept of buffer overflow, a vulnerability that occurs when a program writes data beyond the buffer boundary, potentially overwriting other portions of memory. We will also explore mitigation techniques, such as ASLR, NX, and PIE, concluding with a practical buffer overflow example.\newline
+    The cybersecurity landscape is constantly evolving, with adversaries continually seeking to exploit weaknesses in software systems.\newline
+    Among the most prevalent vulnerabilities are buffer overflows, in which a program inadvertently writes data beyond the bounds of a designated memory buffer, potentially leading to catastrophic consequences.\newline
+    Similarly, heap overflows, while less common, pose a significant threat because they target dynamically allocated memory area. Understanding these vulnerabilities and devising effective mitigation strategies is critical to safeguarding systems from malicious exploitation.
 
-Chapter 3 will look at heap overflow, a similar vulnerability but involving the heap memory area. We will explore mitigation strategies, including Safe Linking and Top Chunk Integrity Check, along with an illustrative heap overflow example.\newline
+    In \texttt{Chapter 2} of this thesis is dedicated to unraveling the intricacies of buffer overflows. We commence by elucidating the fundamental concept, exploring the mechanisms through which these vulnerabilities manifest, and dissecting the potential ramifications. Moreover, we undertake an exhaustive examination of contemporary mitigation techniques, including Address Space Layout Randomization (ASLR), Data Execution Prevention (NX), and Position Independent Executables (PIE). Through a synthesis of theoretical discourse and practical illustration, we endeavor to provide a comprehensive understanding of buffer overflows and equip readers with the requisite knowledge to mitigate such vulnerabilities effectively.
 
-Finally, in Chapter 4, we will focus on buffer overflows in the Linux kernel. We will discuss specific vulnerabilities and their mitigations, such as SMEP, SMAP, KASLR, and KPTI, and provide an example of a stack buffer overflow.\newline
+    In \texttt{Chapter 3}, our focus shifts towards heap overflows, a variant of buffer overflows that exploit vulnerabilities within the dynamically allocated memory region known as the heap. We embark on a nuanced exploration of these vulnerabilities, elucidating the underlying mechanisms and exploring mitigation strategies. Specifically, we delve into techniques such as Safe Linking and Top Chunk Integrity Check, offering insights into their efficacy in thwarting heap-based attacks. Furthermore, we supplement our theoretical discourse with a practical demonstration, thereby fostering a holistic comprehension of heap overflows and their countermeasures
 
-This in-depth study of cybersecurity vulnerabilities and their mitigation techniques is critical to understanding and addressing cybersecurity threats in complex environments such as the Linux kernel.\newline
+    In the \texttt{final chapter} of our thesis, we hone our focus on buffer overflows within the Linux kernel, dissecting specific vulnerabilities and elucidating mitigation strategies.\newline
+    From Supervisor Mode Execution Prevention (SMEP) and Supervisor Mode Access Prevention (SMAP) to Kernel Address Space Layout Randomization (KASLR) and Kernel Page Table Isolation (KPTI), we delve into the arsenal of defenses employed to fortify the Linux kernel against malicious exploitation.\newline
+    By virtue of a practical illustration showcasing a stack buffer overflow, we endeavor to underscore the criticality of understanding and mitigating vulnerabilities within the Linux kernel environment.
 
-\section{Tooling}
-In this thesis, several tools will be utilized, including:\newline
 
-
-\texttt{pwndbg} : pwndbg is a GDB plugin that makes debugging with GDB with a focus on features needed by low-level software developers, hardware hackers, reverse engineers, and developer exploitation.\newline
-    \texttt{pwntools}: is a very powerful Python library created to make difficult things easy in exploit development.\newline
-    Such as receiving program output contents, sending user input, sending bytes instead of letters, and much more.\newline
-    \texttt{ ghidra or ida free:} 
-    ghidra is a free tool developed by the NSA used to decompile binary files.
-    ida free is the free version of ida pro and is a cloud base decompiler, the free version works only for some architecture such as x8664.\newline
-    Both tools are used in the reverse engineering part.\newline
+    
+    \section{Tooling}
+    In this thesis, several tools will be utilized, including:\newline
+    
+  
+    \texttt{pwndbg} : pwndbg is a GDB plugin that makes debugging with GDB with a focus on features needed by low-level software developers, hardware hackers, reverse engineers, and developer exploitation.\newline
+        \texttt{pwntools}: is a very powerful Python library created to make difficult things easy in exploit development.\newline
+        Such as receiving program output contents, sending user input, sending bytes instead of letters, and much more.\newline
+        \texttt{ ghidra or ida free:} 
+        ghidra is a free tool developed by the NSA used to decompile binary files.
+        ida free is the free version of ida pro and is a cloud base decompiler, the free version works only for some architecture such as x8664.\newline
+        Both tools are used in the reverse engineering part.\newline

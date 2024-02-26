@@ -23,7 +23,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1.1\linewidth]{Images/chunk_structure.png}
-        \caption{chunk in gdb}
+        \caption{Chunk in gdb.}
         \label{fig:enter-label}
     \end{figure}
     
@@ -85,7 +85,7 @@
         \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/heap_overflow.png}
-        \caption{Heap overflow viewed in gdb }
+        \caption{Heap overflow viewed in gdb.}
         \label{fig:enter-label}
     \end{figure}
     How can we analyze the chunk that we have allocated "buf" is allocated previously compared to the value of the top chunk, so by performing an overflow we will overwrite the value of the top chunk with the value \texttt{0x4141414141414141}
@@ -101,7 +101,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/heap_trasformation.jpg}
-        \caption{heap after overwriting top chunk}
+        \caption{Heap after overwriting top chunk.}
         \label{fig:enter-label}
     \end{figure}
     \clearpage
@@ -177,7 +177,7 @@
      \begin{figure}[htbp]
          \centering
          \includegraphics[width=1\linewidth]{Images/heap_chall_bug.png}
-         \caption{Vulnerable function}
+         \caption{Vulnerable function.}
          \label{fig:enter-label}
      \end{figure}
 
@@ -231,7 +231,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/leak_libc_heap_chall.png}
-        \caption{Leak libc}
+        \caption{Leak libc.}
         \label{fig:enter-label}
     \end{figure}
     As you can see at address \texttt{0x55671813e2c0} we have a pointer to libc, at this point we just need to reallocate chunk of the same size and view it, malloc will not clean the contents of the freed chunk allowing us to leak a pointer to libc. \newline
@@ -259,7 +259,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/leak_heap_heap_chall.png}
-        \caption{heap leak}
+        \caption{Heap leak.}
         \label{fig:enter-label}
     \end{figure}
     \clearpage
@@ -290,7 +290,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/arb_read_heapchall.png}
-        \caption{Enter Caption}
+        \caption{Stack state arbitrary read.}
         \label{fig:arb_read}
     \end{figure}
 
@@ -327,7 +327,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=0.8\linewidth]{Images/arb_write_heapchall.png}
-        \caption{Arbitrary write}
+        \caption{Arbitrary write.}
         \label{fig:arb_write}
     \end{figure}
   
@@ -349,6 +349,6 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=0.9\linewidth]{Images/RCE_chall_heap.png}
-        \caption{remote command execution}
+        \caption{Remote Command Execution.}
         \label{fig:enter-label}
     \end{figure}

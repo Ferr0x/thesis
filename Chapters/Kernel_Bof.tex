@@ -23,11 +23,11 @@
         \item[$\bullet$] Kernel mode
         \item[$\bullet$] User mode
     \end{itemize}
-    kernel mode: In this mode the kernel has full access to hardware resources and system privileges.\newline
+    kernel mode: In this mode, the kernel has full access to hardware resources and system privileges.\newline
     It is used to execute kernel code and to perform operations that require elevated privileges such as memory and device management.\newline
     User mode: The code that runs in this mode has limited privileges and does not have direct access to memory and hardware resources, but most applications are run in this mode.\newline
     \subparagraph{Talking to the Linux kernel}
-    As we have just explained, there are various modes and many types of memory sections, but in the context of exploitation we are interested in analyzing functions that we can achieve so as to trigger bugs and exploit them.\newline
+    As we have just explained, there are various modes and many types of memory sections, but in the context of exploitation we are interested in analyzing functions that we can achieve to trigger bugs and exploit them.\newline
     So saying, it is essential to understand how a userspace program communicates with the kernel.\newline
     There are many modalities, the ones we will analyze today will be:\newline
     \begin{itemize}
@@ -44,15 +44,16 @@
     Syscalls or system calls have the task of requesting services from the kernel such as file management, process creation, hardware management, and many other things.\newline
     Communication between user space and kernel space occurs according to some points:\newline
     \begin{itemize}
-    \item Request from User Space: A user program requests send a service request to the kernel via a syscall, the call can be called from an ELF executable for example.\newline
-    \item Passing parameters:The syscall specifications are defined in the registers as rax (defines the syscall number), rdi (usually a pointer to the file descriptor) and so for each syscall, all registers have an identifier.\newline
-    \item Kernel Space transition and syscall management: At this point, based on the parameters passed, if there are no errors, the kernel executes the system call, and if necessary returns a value.\newline
-    \item Return to the User Space: As a final step, the kernel returns control to the user process.\newline
-\end{itemize}
+        \item Request from User Space: A user program requests send a service request to the kernel via a syscall, the call can be called from an ELF executable for example.\newline
+        \item Passing parameters:  The syscall specifications are defined in the registers as rax (defines the syscall number), rdi (usually a pointer to the file descriptor) and so for each syscall, all registers have an identifier.\newline
+        \item Kernel Space transition and syscall management: At this point, based on the parameters passed, if there are no errors, the kernel executes the system call, and if necessary returns a value.\newline
+        \item Return to the User Space: As a final step, the kernel returns control to the user process.\newline
+    \end{itemize}
+\clearpage
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=0.9\linewidth]{Images/syscall.png}
-        \caption{System calls}
+        \caption{System calls.}
         \label{fig:enter-label}
     \end{figure}
 
@@ -151,12 +152,12 @@
       return 0;
 }    
     \end{verbatim}
-    The code above may be vulnerable, in fact in the call to copy\_from\_user the size of the second argument buffer is not checked, if by chance this buffer exceeds sixteen characters a buffer overflow will occur on the kernel.\newline
+    The code above may be vulnerable, in fact, in the call to copy\_from\_user the size of the second argument buffer is not checked, if by chance this buffer exceeds sixteen characters a buffer overflow will occur on the kernel.\newline
     The technique of exploiting a buffer overflow within the kernel is similar to that seen in the second chapter except that we are in a different structure and we have new mitigations that will be explained later.\newline
     \clearpage
     \section{Mitigations}
     The Linux kernel is vital for all Linux-based systems. However, due to its extensive codebase, numerous bugs are continually being identified by researchers. To address this, the Linux kernel incorporates multiple mitigations, making exploitation techniques significantly challenging.\newline
-    In this chapter we will examine some of the main mitigations present in the Linux kernel, including:
+    In this chapter, we will examine some of the main mitigations present in the Linux kernel, including:
     \begin{itemize}
         \item[$\bullet$] SMEP (Supervisor Mode Execution Prevention)
         \item[$\bullet$] SMAP (Supervisor Mode Access Prevention) 
@@ -182,7 +183,7 @@
     \end{verbatim}
     \subsection{SMAP}
     SMAP (Supervisor Mode Access Prevention) is one of the main mitigation of the Linux kernel, we will also interface with this mitigation after in the exploiting phase.\newline
-    The task of this mitigation is to marks all user space pages as inaccessible when the process is in kernel mode, and prevents kenel space from reading or writing user space memory.\newline
+    The task of this mitigation is to marks all user space pages as inaccessible when the process is in kernel mode, and prevent kenel space from reading or writing user space memory.\newline
     SMAP In the linux kernel is enabled by setting the twenty-first bit of Control Register CR4.\newline
     To check if the mitigation is active just run the following commands: \newline
       \begin{verbatim}
@@ -194,10 +195,10 @@
     \subsection{KASLR}
 
     As we saw previously in the Stack Buffer Overflow chapter, stack randomization is carried out by ASLR, even in the Linux kernel there is an address randomization that prevents sensitive data from being called directly, this is called KASLR. \newline
-    KASLR as ASLR for the stack, randomize the addresses  of the code and data sections of the Linux kernel and device drivers.\newline
+    KASLR as ASLR for the stack, randomize the addresses of the code and data sections of the Linux kernel and device drivers.\newline
     Unlike aslr which randomizes memory sections every time a program is started in userspace, the Linux kernel cannot shut down after the power-on phase, so KASLR will randomize addresses once after the boot phase.\newline
     Consequently, if we manage to leak an address after booting the kernel, the randomization will always be the same.\newline
-    Since the beginning of 2020, a new version of kaslr has been released and it is called FGKASLR, which stand for Functions Granular Kernel Address Space Layout Randomization.\newline 
+    Since the beginning of 2020, a new version of kaslr has been released and it is called FGKASLR, which stands for Functions Granular Kernel Address Space Layout Randomization.\newline 
     This is a technology that randomizes addresses for each function in the Linux kernel.\newline 
     Although the address of a function in the Linux kernel can be leaked, it is not possible to determine the base address, the only way to leak the base is to extrapolate a pointer to the data section, in fact this is not randomized and allows you to find the base address.\newline
     an example of the randomization follows, in all cases I executed the command cat proc/kallsyms | grep commit\_creds we will discover later in the thesis that this address will be very useful to us:\newline
@@ -209,7 +210,7 @@
     second case KASLR enable
         0xffffffff84349500
     \end{verbatim}
-    As we can see from the example above, kaslr only randomizes the last 8 nibbles and therefore the last 4 bytes, however KASLR will be impossible to brute because unlike ASLR if the kernel panics during the brute force we will lose all the brute work we have done up until now to kernel panic.\newline
+    As we can see from the example above, kaslr only randomizes the last 8 nibbles and therefore the last 4 bytes, however, KASLR will be impossible to brute because unlike ASLR if the kernel panics during the brute force we will lose all the brute work we have done up until now to kernel panic.\newline
     To check if the mitigation is active just run the following commands: \newline
     \begin{verbatim}
     command:
@@ -228,13 +229,13 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/kpti.png}
-        \caption{kernel page table isolation}
+        \caption{kernel Page Table Isolation.}
         \label{fig:enter-label}
     \end{figure}
     \clearpage
     \section{How to exploit a stack buffer overflow in the Linux kernel}
     \subsection{Introduction}
-    In this section we will analyze a vulnerable kernel module written by ptrYudai\cite{PWNYABLE}.\newline
+    In this section, we will analyze a vulnerable kernel module written by ptrYudai\cite{PWNYABLE}.\newline
     By running the uname -r command we will notice that we are facing the following kernel version:\newline
     5.10.7 a fairly old version.\newline
     However, exploitation and mitigation bypass techniques also work in more recent kernels.\newline
@@ -266,8 +267,8 @@
             -gdb tcp::12345 \
     \end{verbatim}
     The kernel is set up via qemu, a system that allows you to emulate an environment you want to launch, qemu is used for various reasons, such as:\newline
-    Be safer and not launch a vulnerable kernel on your computer, qemu allows you to manage memory and finally we can debug the kernel with gdb even if in a limited way because it is emulated.\newline
-    The code above specify the image kernel we want to run with the field -kernel the mitigations we want to apply to the system in the field -appen, we can see that there are all mitigations activated, and some other details.\newline
+    Be safer and not launch a vulnerable kernel on your computer, qemu allows you to manage memory and finally, we can debug the kernel with gdb even if in a limited way because it is emulated.\newline
+    The code above specifies the image kernel we want to run with the field -kernel and the mitigations we want to apply to the system in the field -appen, we can see that there are all mitigations activated, and some other details.\newline
 
     \subsection{Reverse engineering}
     As with real word applications, the kernel source code is present, this facilitates the reverse engineering part.\newline
@@ -294,17 +295,18 @@
     \end{verbatim}
     The bug inside this code is very simple but unfortunately the code above is missing a detail to understand the bug.\newline
     In fact, in the copy\_from\_user call the count variable will be decided by the user and kbuf has a maximum size of 0x400, so what could happen if we put 0x450 user input?\newline
+    \clearpage
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/kernel_panic.png}
-        \caption{kernel panic}
+        \caption{kernel panic.}
         \label{fig:enter-label}
     \end{figure}
 
     
     We managed to overwrite the return address with the value \texttt{0x4141414141414141} causing a kernel panic, and having return address control.\newline
     \subsection{Attack plan and Exploit analysis}
-    As seen previously we have RIP control, in this section we will see how to do privilege escalation and bypass active mitigations.\newline
+    As seen previously we have RIP control, in this section, we will see how to do privilege escalation and bypass active mitigations.\newline
     The goal is to call the following function:\newline
     \begin{verbatim}
         commit_creds(prepare_kernel_cred(NULL));
@@ -321,21 +323,22 @@ prepare\_kernel\_cred(NULL) creates a new set of credentials with kernel privile
           "movq %%rsp, %2\n"
           "pushfq\n"
           "popq %3\n"
-          : "=r"(user_cs), "=r"(user_ss), "=r"(user_rsp), "=r"(user_rflags)
+          : "=r"(user_cs), "=r"(user_ss), "=r"(user_rsp), 
+          "=r"(user_rflags)
           :
           : "memory");
     }
     
     \end{verbatim}
-    The shellcode we see above allows us to save the registers of the stack segment code segment, RSP can have any value inside the stack and RIP we can set it so that it points to a function that launches a shell.\newline
+    The shellcode we see above allows us to save the registers of the stack segment code segment, RSP can have any value inside the stack, and RIP we can set it so that it points to a function that launches a shell.\newline
     At this point just write a function that calls commit creds and prapare\_kernel\_creds and we have a root shell?\newline
-    Absolutely not, unfortunately SMEP comes into play, in fact when the RIP is overwritten and tries to point and execute a function that is kernel space but is executable as user mode SMEP will block the execution with the following error:
+    Not, unfortunately, SMEP comes into play, in fact when the RIP is overwritten and tries to point and execute a function that is kernel space but is executable as user mode SMEP will block the execution with the following error:
     \begin{verbatim}
         unable to execute userspace code (SMEP?)
     \end{verbatim}
-    So at this point we are forced to ROP, except that kaslr is activated and consequently we cannot call the addresses because they are randomized.\newline
+    So at this point, we are forced to ROP, except that kaslr is activated and consequently we cannot call the addresses because they are randomized.\newline
     The only way to bypass kaslr is to find a leak.\newline
-    At this point the second bug arises: read is vulnerable in the same way as write, in fact you can do read out of bounds, read is vulnerable in the following line of code:\newline
+    At this point, the second bug arises: read is vulnerable in the same way as write, in fact you can do read out of bounds, read is vulnerable in the following line of code:\newline
     \begin{verbatim}
     if (_copy_to_user(buf, kbuf, count)) {
         printk(KERN_INFO "copy_to_user failed\n");
@@ -347,10 +350,11 @@ prepare\_kernel\_cred(NULL) creates a new set of credentials with kernel privile
    \begin{verbatim}
       read(fd, buf, 0x410);
       unsigned long addr_vfs_read = *(unsigned long*)&buf[0x408];
-      unsigned long kbase = addr_vfs_read - (0xffffffff8113d33c-0xffffffff81000000);
+      unsigned long kbase = addr_vfs_read - 
+      (0xffffffff8113d33c-0xffffffff81000000);
       printf("[+] kbase = 0x%016lx\n", kbase);
    \end{verbatim}
-   To find the libc we will perform this operation : leak - (function\_without\_kaslr - base\_without\_kaslr).\newline
+   To find the libc we will perform this operation: leak - (function\_without\_kaslr - base\_without\_kaslr).\newline
    At this point we have everything we need to do the privileging escalation steps:\newline
     \begin{itemize}
         \item[$\bullet$] Save register state.
@@ -366,15 +370,16 @@ prepare\_kernel\_cred(NULL) creates a new set of credentials with kernel privile
         \end{itemize}
     \end{itemize}
     The only step in this ROP that we have not analyzed is bypassing kpti.
-    As explained previously, this mitigation was implemented mainly for hardware bugs but also at a software level it adds a step to our ROP chain, in fact we will call the   swapgs\_restore\_regs\_and\_return\_usermode function which allows us to set RIP to the win function which will call execve("/bin/sh") and set the registers to reset the stack.\newline
+    As explained previously, this mitigation was implemented mainly for hardware bugs but also at a software level, it adds a step to our ROP chain, in fact, we will call the   swapgs\_restore\_regs\_and\_return\_usermode function which allows us to set RIP to the win function which will call execve("/bin/sh") and set the registers to reset the stack.\newline
     Follow the instructions that  
-    swapgs\_restore\_regs\_and\_return\_usermode: \newline
+    swapgs\_restore\_regs\_and\_return\_usermode fig \ref{fig:restorereg}: \newline
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/swapgs_restore_regs_and_return_usermode.png}
-        \caption{function assembly instructions}
-        \label{fig:enter-label}
-    \end{figure}
+        \caption{Function assembly instructions.}
+        \label{fig:restorereg}
+    \end{figure}fig:restorereg
+    \clearpage
     This is what looks like the ROP chain:
     \begin{verbatim}
       memset(buf, 'A', 0x408);
@@ -400,15 +405,13 @@ prepare\_kernel\_cred(NULL) creates a new set of credentials with kernel privile
     \end{verbatim}
     
     The last thing left to do is run the full exploit, and see if we get a rooted shell.\newline
-
-    
     \begin{figure}[htbp]
         \centering
-        \includegraphics[width=0.5\linewidth]{Images/LPE_kernel_exploit.png}
-        \caption{privilege escalation from unprivilege state}
+        \includegraphics[width=0.8\linewidth]{Images/LPE_kernel_exploit.png}
+        \caption{Privilege escalation from unprivileged state.}
         \label{fig:enter-label}
     \end{figure}
-    We managed to correctly execute an attack that allowed us to do privilege escalation from a non-privileged user, profit!.\newline
+    We managed to correctly execute an attack that allowed us to do privilege escalation from a non-privileged user, profit!\newline
     follow the final exploit: \newline
     
     

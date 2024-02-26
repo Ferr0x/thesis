@@ -39,7 +39,7 @@
     \begin{figure}[h]
     \centering
     \includegraphics[width=8cm]{Images/chunk_wout_cacnary.png}
-    \caption{Empty stack}
+    \caption{Empty stack.}
     \label{fig:example_empty_buffer}
     \end{figure}
        \clearpage
@@ -56,7 +56,7 @@
     \begin{figure}[h]
         \centering
         \includegraphics[width=0.7\linewidth]{Images/example1.png}
-        \caption{buffer overflow triggered}
+        \caption{Buffer overflow triggered.}
         \label{fig:bofongdb}
     \end{figure}
     \newpage
@@ -65,12 +65,12 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=0.8\linewidth]{Images/stack_after_overflow.png}
-        \caption{Stack after the overflow}
+        \caption{Stack after the overflow.}
         \label{fig:stack w overflow}
     \end{figure}
     As explained previously we have overwritten the base pointer register and the return address.\newline
     Register that is used to keep track of where the program will execute after the function being executed has finished.\newline
-    Having changed the \texttt{RIP} register we changed the control flow with the address \texttt{0x4343434343434343}, an address which will not be found by the program because is not mapped in the memory and we will encounter a segmentation fault.\newline
+    Having changed the \texttt{RIP} register we changed the control flow with the address \texttt{0x4343434343434343}, an address which the program will not find because is not mapped in the memory and we will encounter a segmentation fault.\newline
 
     \clearpage
     \section{Mitigations against Stack Buffer Overflow}
@@ -191,7 +191,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=0.9\linewidth]{Images/terminator_rev.png}
-        \caption{Enter Caption}
+        \caption{Ghidra interface.}
         \label{fig:enter-label}
     \end{figure}
     %ARRIVATO QUA
@@ -287,7 +287,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/leaked_canary_terminator.png}
-        \caption{Enter Caption}
+        \caption{Canary leaked.}
         \label{fig:leaked_terminator_canary}
     \end{figure}
     As can be deduced from Fig \ref{fig:leaked_terminator_canary} these will be all the bytes that the printf has leaked to us until the arrival of a null byte, these bytes include the canary and the base pointer.\newline
@@ -296,7 +296,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/draw_terminator_stack_canaryleak.png}
-        \caption{stack status after off by one}
+        \caption{Stack status after off by one.}
         \label{fig:stack terminator}
     \end{figure}
     
@@ -318,7 +318,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=1\linewidth]{Images/rop_gadget.png}
-        \caption{Enter Caption}
+        \caption{Rop gadgets.}
         \label{fig:enter-label}
     \end{figure}
     
@@ -362,7 +362,7 @@
     \end{verbatim}
      We can only perform a \texttt{ROP} chain if the registers contain a net at the end.\newline
     For example, for the libc leak, if we want to do \texttt{puts(got.puts)} we can use the \texttt{pop rdi gadget; ret} so after having written the gadget on the return address we will push the address of puts.got to rdi, and then we will call puts as ret.\newline   
-    In this specific case we don't have space to write the rop chain after the return address so previously in addition to the canary I saved the base pointer so as to overwrite the current base pointer with the value of the previously leaked one -0x68 (size of our stack frame).\newline
+    In this specific case we don't have space to write the rop chain after the return address so previously in addition to the canary I saved the base pointer to overwrite the current base pointer with the value of the previously leaked one -0x68 (size of our stack frame).\newline
     By doing this, when we go to call the return we will perform a stack pivoting so we will move the stack and we will correctly leak the contents of the libc.\newline
     The call that will allow us to do stack pivoting is the leave ret call that is made every time we exit a function.\newline
     Leave ret executes the following instructions mov rsp,rbp; pop rbp; por rdi;\newline
@@ -381,7 +381,7 @@
     \begin{figure}[htbp]
         \centering
         \includegraphics[width=0.5\linewidth]{Images/rce_stack_chall.png}
-        \caption{remote coomand execution}
+        \caption{Remote Comand execution.}
         \label{fig:enter-label}
     \end{figure}
     \newpage
