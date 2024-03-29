@@ -1,4 +1,4 @@
-#three-year computer science thesis
+# three-year computer science thesis
 in this repository you will find the latex files of my thesis for the three-year degree, the topics covered are:
 + Stack Buffer Overflow
 + Heap Overflow
